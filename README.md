@@ -1,4 +1,5 @@
 EnchantView
 ===========
 
-EnchantView minecraft m od
+EnchantView minecraft mod
+
