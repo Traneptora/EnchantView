@@ -1,0 +1,15 @@
+[
+{
+  "modid": "EnchantView",
+  "name": "EnchantView",
+  "description": "This mod allows you to see the enchantments you'll receive from the enchantment table before you enchant your item. Note that the server needs the mod for you to see the enchantments in multiplayer.",
+  "version": "3.12.0",
+  "credits": "Thebombzen",
+  "mcversion": "1.6.4",
+  "url": "http://is.gd/sWk5fi",
+  "updateUrl": "",
+  "authors": [ "Thebombzen" ],
+  "dependencies" : [ "ThebombzenAPI" ]
+}
+]
+
