@@ -3,7 +3,7 @@ package thebombzen.mods.enchantview;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatMessageComponent;
+import net.minecraft.util.IChatComponent;
 
 public class CommandEnchantViewExists extends CommandBase {
 
@@ -22,7 +22,7 @@ public class CommandEnchantViewExists extends CommandBase {
 	}
 
 	@Override
-	public String getCommandUsage(ICommandSender var1) {
+	public String getCommandUsage(ICommandSender sender) {
 		return "Asks whether enchantview exists.";
 	}
 
@@ -32,9 +32,8 @@ public class CommandEnchantViewExists extends CommandBase {
 	}
 
 	@Override
-	public void processCommand(ICommandSender var1, String[] var2) {
-		var1.sendChatToPlayer(ChatMessageComponent
-				.createFromText("Yes, EnchantView exists."));
+	public void processCommand(ICommandSender sender, String[] strings) {
+		sender.addChatMessage(IChatComponent.Serializer.func_150699_a("{\"text\":\"Yes, EnchantView exists.\"}"));
 	}
 
 }
