@@ -53,7 +53,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	
 	public FMLEventChannel channel;
 
-	@Instance(value = "EnchantView")
+	@Instance(value = "enchantview")
 	public static EnchantView instance;
 
 	@SidedProxy(clientSide = "thebombzen.mods.enchantview.client.ClientSideSpecificUtilities", serverSide = "thebombzen.mods.enchantview.server.ServerSideSpecificUtilities")
