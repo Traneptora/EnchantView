@@ -4,13 +4,18 @@ import thebombzen.mods.thebombzenapi.ThebombzenAPIConfigOption;
 
 public enum ConfigOption implements ThebombzenAPIConfigOption {
 
-	ENABLE_SP("true", "Use in singleplayer", "This option determines whether",
-			"to enable EnchantView in singleplayer."), ENABLE_MP("true",
-			"Use in multiplayer", "This option determines whether",
-			"to enable EnchantView in multiplayer.",
-			"Keep in mind that it only works", "if the server has the mod."), ALLOW_ON_LAN(
-			"true", "Enable for LAN players", "This option determines whether",
-			"to allow players on your LAN", "world to use EnchantView.");
+	ENABLE_SP("true", "Use in singleplayer",
+		"This option determines whether",
+		"to enable EnchantView in singleplayer."),
+	ENABLE_MP("true", "Use in multiplayer",
+		"This option determines whether",
+		"to enable EnchantView in multiplayer.",
+		"Keep in mind that it only works",
+		"if the server has the mod."),
+	ALLOW_ON_LAN("true", "Enable for LAN players",
+		"This option determines whether",
+		"to allow players on your LAN",
+		"world to use EnchantView.");
 
 	private String defaultValue;
 
