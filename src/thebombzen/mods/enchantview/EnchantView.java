@@ -319,7 +319,4 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		return "http://is.gd/ThebombzensMods#EnchantView";
 	}
 	
-	
-	
-
 }
