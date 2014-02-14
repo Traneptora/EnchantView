@@ -1,4 +1,4 @@
-package thebombzen.mods.enchantview;
+package thebombzen.mods.enchantview.client;
 
 import java.util.Arrays;
 
@@ -19,6 +19,8 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.util.glu.Project;
 
+import thebombzen.mods.enchantview.ConfigOption;
+import thebombzen.mods.enchantview.EnchantView;
 import thebombzen.mods.thebombzenapi.ThebombzenAPI;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

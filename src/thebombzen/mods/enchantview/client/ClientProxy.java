@@ -1,5 +1,8 @@
-package thebombzen.mods.enchantview;
+package thebombzen.mods.enchantview.client;
 
+import thebombzen.mods.enchantview.CommonProxy;
+import thebombzen.mods.enchantview.ConfigOption;
+import thebombzen.mods.enchantview.EnchantView;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 

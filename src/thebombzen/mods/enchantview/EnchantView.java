@@ -25,6 +25,8 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.common.MinecraftForge;
+import thebombzen.mods.enchantview.client.ConfigScreen;
+import thebombzen.mods.enchantview.client.EVGuiEnchantment;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIConfiguration;
 import thebombzen.mods.thebombzenapi.client.ThebombzenAPIConfigScreen;
@@ -44,7 +46,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "enchantview", name = "EnchantView", version = "4.0.0", dependencies = "required-after:thebombzenapi")
+@Mod(modid = "enchantview", name = "EnchantView", version = "4.0.0", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
 	public static final int STAGE_REQUEST = 0;
@@ -57,7 +59,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@Instance(value = "EnchantView")
 	public static EnchantView instance;
 
-	@SidedProxy(clientSide = "thebombzen.mods.enchantview.ClientProxy", serverSide = "thebombzen.mods.enchantview.CommonProxy")
+	@SidedProxy(clientSide = "thebombzen.mods.enchantview.client.ClientProxy", serverSide = "thebombzen.mods.enchantview.CommonProxy")
 	public static CommonProxy proxy;
 
 	private Configuration configuration;
