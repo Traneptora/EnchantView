@@ -228,6 +228,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		FMLCommonHandler.instance().bus().register(this);
 		MinecraftForge.EVENT_BUS.register(this);
 		channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("EnchantView");
+		channel.register(this);
 		configuration = new Configuration(this);
 		if (event.getSide().equals(Side.CLIENT)) {
 			newItemStacks = new ItemStack[3];
@@ -238,8 +239,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@SideOnly(Side.CLIENT)
 	public void onClientChatReceived(ClientChatReceivedEvent event) {
 		if (askingIfEnchantViewExists) {
-			enchantViewExists = event.message
-					.equals("{\"text\":\"Yes, EnchantView exists.\"}");
+			enchantViewExists = event.message.getUnformattedText().equals("Yes, EnchantView exists.");
 			askingIfEnchantViewExists = false;
 			event.setCanceled(true);
 		}
@@ -290,7 +290,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 				}
 				CompressedStreamTools.writeCompressed(compoundOut, byteOut);
 				FMLProxyPacket packetSend = new FMLProxyPacket(Unpooled.wrappedBuffer(byteOut.toByteArray()), "EnchantView");
-				event.reply = packetSend;
+				channel.sendTo(packetSend, player);
 			} else if (stage == STAGE_ACCEPT) {
 				int slot = compoundIn.getInteger("slot");
 				enchantItem(container,
