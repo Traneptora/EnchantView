@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.UUID;
 
 import net.minecraft.client.gui.GuiEnchantment;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -25,11 +24,9 @@ import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import thebombzen.mods.enchantview.client.ConfigScreen;
 import thebombzen.mods.enchantview.client.EVGuiEnchantment;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIConfiguration;
-import thebombzen.mods.thebombzenapi.client.ThebombzenAPIConfigScreen;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -79,7 +76,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@SideOnly(Side.CLIENT)
 	public volatile int currentWorldHashCode;
 
-	public Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
+	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 
 	public boolean canPlayerUseCommand(EntityPlayerMP player) {
 		return sideSpecificUtilities.canPlayerUseCommand(player);
@@ -196,12 +193,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public ThebombzenAPIConfigScreen createConfigScreen(GuiScreen base) {
-		return new ConfigScreen(this, base, configuration);
-	}
-
-	@Override
 	public ThebombzenAPIConfiguration<?> getConfiguration() {
 		return configuration;
 	}
@@ -230,12 +221,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@Override
 	public String getVersionFileURLString() {
 		return "https://dl.dropboxusercontent.com/u/51080973/EnchantView/EVVersion.txt";
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public boolean hasConfigScreen() {
-		return true;
 	}
 	
 	@Override
