@@ -10,7 +10,7 @@ public class CommandEnchantViewExists extends CommandBase {
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender par1ICommandSender) {
 		if (par1ICommandSender instanceof EntityPlayerMP) {
-			return EnchantView.proxy.canPlayerUseCommand((EntityPlayerMP) par1ICommandSender);
+			return EnchantView.sideSpecificUtilities.canPlayerUseCommand((EntityPlayerMP) par1ICommandSender);
 		} else {
 			return true;
 		}

@@ -59,8 +59,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@Instance(value = "EnchantView")
 	public static EnchantView instance;
 
-	@SidedProxy(clientSide = "thebombzen.mods.enchantview.client.ClientProxy", serverSide = "thebombzen.mods.enchantview.CommonProxy")
-	public static CommonProxy proxy;
+	@SidedProxy(clientSide = "thebombzen.mods.enchantview.client.ClientSideSpecificUtilities", serverSide = "thebombzen.mods.enchantview.server.ServerSideSpecificUtilities")
+	public static SideSpecificUtilities sideSpecificUtilities;
 
 	private Configuration configuration;
 
@@ -82,7 +82,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	public Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 
 	public boolean canPlayerUseCommand(EntityPlayerMP player) {
-		return proxy.canPlayerUseCommand(player);
+		return sideSpecificUtilities.canPlayerUseCommand(player);
 	}
 
 	public void enchantItem(ContainerEnchantment container,
