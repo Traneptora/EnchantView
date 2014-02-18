@@ -1,12 +1,12 @@
 package thebombzen.mods.enchantview.client;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import thebombzen.mods.enchantview.ConfigOption;
 import thebombzen.mods.enchantview.EnchantView;
 import thebombzen.mods.enchantview.SideSpecificUtilities;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class ClientSideSpecificUtilities implements SideSpecificUtilities {
