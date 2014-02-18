@@ -133,8 +133,8 @@ public class EVGuiEnchantment extends GuiEnchantment {
 	        GL11.glRotatef(180.0F, 1.0F, 0.0F, 0.0F);
 	        float f4 = this.field_147069_w + (this.field_147071_v - this.field_147069_w) * par1 + 0.25F;
 	        float f5 = this.field_147069_w + (this.field_147071_v - this.field_147069_w) * par1 + 0.75F;
-	        f4 = (f4 - (float)MathHelper.truncateDoubleToInt((double)f4)) * 1.6F - 0.3F;
-	        f5 = (f5 - (float)MathHelper.truncateDoubleToInt((double)f5)) * 1.6F - 0.3F;
+	        f4 = (f4 - MathHelper.truncateDoubleToInt(f4)) * 1.6F - 0.3F;
+	        f5 = (f5 - MathHelper.truncateDoubleToInt(f5)) * 1.6F - 0.3F;
 
 	        if (f4 < 0.0F)
 	        {
