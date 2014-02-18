@@ -128,6 +128,80 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		return newItemStack;
 	}
 
+	@Override
+	public ThebombzenAPIConfiguration<?> getConfiguration() {
+		return configuration;
+	}
+	
+	@Override
+	@SideOnly(Side.CLIENT)
+	public String getDownloadLocationURLString() {
+		return "http://is.gd/ThebombzensMods#EnchantView";
+	}
+
+	@Override
+	public String getLongName() {
+		return "EnchantView";
+	}
+
+	@Override
+	public String getLongVersionString() {
+		return "EnchantView, version 4.0.0, Minecraft 1.7.2";
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public int getNumToggleKeys() {
+		return 0;
+	}
+
+	@Override
+	public String getShortName() {
+		return "EV";
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	protected String getToggleMessageString(int index, boolean enabled) {
+		return null;
+	}
+
+	@Override
+	public String getVersionFileURLString() {
+		return "https://dl.dropboxusercontent.com/u/51080973/EnchantView/EVVersion.txt";
+	}
+
+	@Override
+	public void init1(FMLPreInitializationEvent event){
+		FMLCommonHandler.instance().bus().register(this);
+		MinecraftForge.EVENT_BUS.register(this);
+		channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("EnchantView");
+		channel.register(this);
+		configuration = new Configuration(this);
+		if (event.getSide().equals(Side.CLIENT)) {
+			newItemStacks = new ItemStack[3];
+		}
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onClientChatReceived(ClientChatReceivedEvent event) {
+		if (askingIfEnchantViewExists) {
+			enchantViewExists = event.message.getUnformattedText().equals("Yes, EnchantView exists.");
+			askingIfEnchantViewExists = false;
+			event.setCanceled(true);
+		}
+	}
+	
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void onOpenGui(GuiOpenEvent event) {
+		if (event.gui instanceof GuiEnchantment
+				&& !(event.gui instanceof EVGuiEnchantment)) {
+			event.gui = new EVGuiEnchantment((GuiEnchantment) event.gui);
+		}
+	}
+
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onPacketToClient(ClientCustomPacketEvent event){
@@ -137,6 +211,59 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		byte[] payload = new byte[event.packet.payload().readableBytes()];
 		event.packet.payload().readBytes(payload);
 		receiveEnchantmentsListFromServer(payload);
+	}
+
+	@SubscribeEvent
+	public void onPacketToServer(ServerCustomPacketEvent event) {
+		if (!event.packet.channel().equals("EnchantView")){
+			return;
+		}
+		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
+		try {
+			byte[] payload = new byte[event.packet.payload().readableBytes()];
+			event.packet.payload().readBytes(payload);
+			NBTTagCompound compoundIn;
+			compoundIn = CompressedStreamTools.readCompressed(new ByteArrayInputStream(payload));
+			int stage = compoundIn.getInteger("stage");
+			int windowId = compoundIn.getInteger("windowId");
+			if (player.openContainer.windowId != windowId) {
+				return;
+			}
+			if (!(player.openContainer instanceof ContainerEnchantment)) {
+				return;
+			}
+			ContainerEnchantment container = (ContainerEnchantment) player.openContainer;
+			if (stage == STAGE_REQUEST) {
+				ItemStack[] newItemStacks = new ItemStack[3];
+				for (int i = 0; i < 3; i++) {
+					newItemStacks[i] = generateEnchantedItemStack(container, player, i);
+				}
+				newItemStacksMap.put(player.getUniqueID(), newItemStacks);
+				ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+				NBTTagCompound compoundOut = new NBTTagCompound();
+				compoundOut.setInteger("stage", STAGE_SEND);
+				for (int i = 0; i < 3; i++) {
+					NBTTagCompound stackTag = new NBTTagCompound();
+					newItemStacks[i].writeToNBT(stackTag);
+					compoundOut.setTag("stack" + i, stackTag);
+				}
+				CompressedStreamTools.writeCompressed(compoundOut, byteOut);
+				FMLProxyPacket packetSend = new FMLProxyPacket(Unpooled.wrappedBuffer(byteOut.toByteArray()), "EnchantView");
+				channel.sendTo(packetSend, player);
+			} else if (stage == STAGE_ACCEPT) {
+				int slot = compoundIn.getInteger("slot");
+				enchantItem(container,
+						player, slot);
+				newItemStacksMap.put(player.getUniqueID(), new ItemStack[3]);
+			}
+		} catch (IOException ioe) {
+			// never!
+		}
+	}
+
+	@EventHandler
+	public void onServerStarting(FMLServerStartingEvent event){
+		event.registerServerCommand(new CommandEnchantViewExists());
 	}
 	
 	@SideOnly(Side.CLIENT)
@@ -190,133 +317,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 		FMLProxyPacket payload = new FMLProxyPacket(Unpooled.wrappedBuffer(dataOut.toByteArray()), "EnchantView");
 		channel.sendToServer(payload);
-	}
-
-	@Override
-	public ThebombzenAPIConfiguration<?> getConfiguration() {
-		return configuration;
-	}
-
-	@Override
-	public String getLongName() {
-		return "EnchantView";
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public int getNumToggleKeys() {
-		return 0;
-	}
-
-	@Override
-	public String getShortName() {
-		return "EV";
-	}
-
-	@Override
-	public String getLongVersionString() {
-		return "EnchantView, version 4.0.0, Minecraft 1.7.2";
-	}
-
-	@Override
-	public String getVersionFileURLString() {
-		return "https://dl.dropboxusercontent.com/u/51080973/EnchantView/EVVersion.txt";
-	}
-	
-	@Override
-	public void init1(FMLPreInitializationEvent event){
-		FMLCommonHandler.instance().bus().register(this);
-		MinecraftForge.EVENT_BUS.register(this);
-		channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("EnchantView");
-		channel.register(this);
-		configuration = new Configuration(this);
-		if (event.getSide().equals(Side.CLIENT)) {
-			newItemStacks = new ItemStack[3];
-		}
-	}
-
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void onClientChatReceived(ClientChatReceivedEvent event) {
-		if (askingIfEnchantViewExists) {
-			enchantViewExists = event.message.getUnformattedText().equals("Yes, EnchantView exists.");
-			askingIfEnchantViewExists = false;
-			event.setCanceled(true);
-		}
-	}
-
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void onOpenGui(GuiOpenEvent event) {
-		if (event.gui instanceof GuiEnchantment
-				&& !(event.gui instanceof EVGuiEnchantment)) {
-			event.gui = new EVGuiEnchantment((GuiEnchantment) event.gui);
-		}
-	}
-
-	@SubscribeEvent
-	public void onPacketToServer(ServerCustomPacketEvent event) {
-		if (!event.packet.channel().equals("EnchantView")){
-			return;
-		}
-		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
-		try {
-			byte[] payload = new byte[event.packet.payload().readableBytes()];
-			event.packet.payload().readBytes(payload);
-			NBTTagCompound compoundIn;
-			compoundIn = CompressedStreamTools.readCompressed(new ByteArrayInputStream(payload));
-			int stage = compoundIn.getInteger("stage");
-			int windowId = compoundIn.getInteger("windowId");
-			if (player.openContainer.windowId != windowId) {
-				return;
-			}
-			if (!(player.openContainer instanceof ContainerEnchantment)) {
-				return;
-			}
-			ContainerEnchantment container = (ContainerEnchantment) player.openContainer;
-			if (stage == STAGE_REQUEST) {
-				ItemStack[] newItemStacks = new ItemStack[3];
-				for (int i = 0; i < 3; i++) {
-					newItemStacks[i] = generateEnchantedItemStack(container, player, i);
-				}
-				newItemStacksMap.put(player.getUniqueID(), newItemStacks);
-				ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-				NBTTagCompound compoundOut = new NBTTagCompound();
-				compoundOut.setInteger("stage", STAGE_SEND);
-				for (int i = 0; i < 3; i++) {
-					NBTTagCompound stackTag = new NBTTagCompound();
-					newItemStacks[i].writeToNBT(stackTag);
-					compoundOut.setTag("stack" + i, stackTag);
-				}
-				CompressedStreamTools.writeCompressed(compoundOut, byteOut);
-				FMLProxyPacket packetSend = new FMLProxyPacket(Unpooled.wrappedBuffer(byteOut.toByteArray()), "EnchantView");
-				channel.sendTo(packetSend, player);
-			} else if (stage == STAGE_ACCEPT) {
-				int slot = compoundIn.getInteger("slot");
-				enchantItem(container,
-						player, slot);
-				newItemStacksMap.put(player.getUniqueID(), new ItemStack[3]);
-			}
-		} catch (IOException ioe) {
-			// never!
-		}
-	}
-	
-	@EventHandler
-	public void onServerStarting(FMLServerStartingEvent event){
-		event.registerServerCommand(new CommandEnchantViewExists());
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	protected String getToggleMessageString(int index, boolean enabled) {
-		return null;
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public String getDownloadLocationURLString() {
-		return "http://is.gd/ThebombzensMods#EnchantView";
 	}
 	
 }
