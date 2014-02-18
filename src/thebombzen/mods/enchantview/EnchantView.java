@@ -215,7 +215,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public String getLongVersionString() {
-		return "EnchantView v4.0.0 for Minecraft 1.7.2";
+		return "EnchantView, version 4.0.0, Minecraft 1.7.2";
 	}
 
 	@Override
