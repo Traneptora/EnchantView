@@ -28,7 +28,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class EVGuiEnchantment extends GuiEnchantment {
 
-	public static final ResourceLocation enchantingTableGuiTextures = ThebombzenAPI.getPrivateField(null,
+	/*public static final ResourceLocation enchantingTableGuiTextures = ThebombzenAPI.getPrivateField(null,
 			GuiEnchantment.class, new String[] {
 		"enchantingTableGuiTextures",
 		"field_147078_C",
@@ -42,7 +42,10 @@ public class EVGuiEnchantment extends GuiEnchantment {
 	public static final ModelBook bookModel = ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, new String[]{
 		"bookModel",
 		"field_147072_E",
-		"E" });
+		"E" });*/
+	public static final ResourceLocation enchantingTableGuiTextures = ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, "enchantingTableGuiTextures");
+	public static final ResourceLocation enchantingTableBookTextures = ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, "enchantingTableBookTextures");
+	public static final ModelBook bookModel = ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, "bookModel");
 	
 	public static EVGuiEnchantment instance;
 	public static int prevLevelsHashCode = 0;
@@ -52,15 +55,21 @@ public class EVGuiEnchantment extends GuiEnchantment {
 	public ContainerEnchantment containerEnchantment;
 
 	public EVGuiEnchantment(GuiEnchantment parent) {
-		super(null, null, 0, 0, 0, (String)ThebombzenAPI.getPrivateField(
+		/*super(null, null, 0, 0, 0, (String)ThebombzenAPI.getPrivateField(
 				parent, GuiEnchantment.class, new String[] { "field_147079_H",
 						"H" }));
-		this.containerEnchantment = (ContainerEnchantment) ThebombzenAPI
+		*/
+		super(null, null, 0, 0, 0, (String)ThebombzenAPI.getPrivateField(parent, GuiEnchantment.class, "field_147079_H"));
+		/*this.containerEnchantment = (ContainerEnchantment) ThebombzenAPI
 				.getPrivateField(parent, GuiEnchantment.class, new String[] {
 						"containerEnchantment", "field_147075_G", "G" });
-		ThebombzenAPI.setPrivateField(this, GuiEnchantment.class, new String[] {
+		*/
+		/*ThebombzenAPI.setPrivateField(this, GuiEnchantment.class, new String[] {
 				"containerEnchantment", "field_147075_G", "G" },
 				this.containerEnchantment);
+		*/
+		this.containerEnchantment = ThebombzenAPI.getPrivateField(parent, GuiEnchantment.class, "containerEnchantment");
+		ThebombzenAPI.setPrivateField(this, GuiEnchantment.class, "containerEnchantment", this.containerEnchantment);
 		this.inventorySlots = this.containerEnchantment;
 		instance = this;
 
