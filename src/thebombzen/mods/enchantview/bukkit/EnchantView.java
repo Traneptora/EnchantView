@@ -1,4 +1,4 @@
-package thebombzen.mods.bukkit.enchantview;
+package thebombzen.mods.enchantview.bukkit;
 
 import java.util.HashMap;
 import java.util.List;
