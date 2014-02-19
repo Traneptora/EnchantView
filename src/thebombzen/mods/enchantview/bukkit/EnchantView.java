@@ -5,21 +5,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import net.minecraft.server.v1_6_R3.ContainerEnchantTable;
-import net.minecraft.server.v1_6_R3.EnchantmentInstance;
-import net.minecraft.server.v1_6_R3.EnchantmentManager;
-import net.minecraft.server.v1_6_R3.EntityPlayer;
-import net.minecraft.server.v1_6_R3.Item;
-import net.minecraft.server.v1_6_R3.ItemStack;
-import net.minecraft.server.v1_6_R3.NBTCompressedStreamTools;
-import net.minecraft.server.v1_6_R3.NBTTagCompound;
+import net.minecraft.server.v1_7_R1.ContainerEnchantTable;
+import net.minecraft.server.v1_7_R1.EnchantmentInstance;
+import net.minecraft.server.v1_7_R1.EnchantmentManager;
+import net.minecraft.server.v1_7_R1.EntityPlayer;
+import net.minecraft.server.v1_7_R1.ItemStack;
+import net.minecraft.server.v1_7_R1.Items;
+import net.minecraft.server.v1_7_R1.NBTCompressedStreamTools;
+import net.minecraft.server.v1_7_R1.NBTTagCompound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_6_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.enchantment.EnchantItemEvent;
@@ -42,15 +42,16 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 	
 	@Override
     public void onEnable(){
-		
+		try {
+			Class.forName("net.minecraft.server.v1_7_R1.ItemStack", false, null);
+		} catch (ClassNotFoundException e){
+			throw new RuntimeException("This version of EnchantView is incompatible with this version of craftbukkit.", e);
+		}
 		enabled = true;
-		
 		newItemStacksMap.clear();
 		enchMaps.clear();
-		
         Bukkit.getMessenger().registerOutgoingPluginChannel(this, "EnchantView");
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "EnchantView", this);
-        
     }
  
     @Override
@@ -104,7 +105,7 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 				for (int i = 0; i < 3; i++){
 	    			NBTTagCompound stackTag = new NBTTagCompound();
 	    			newItemStacks[i].save(stackTag);
-	    			compoundOut.setCompound("stack"+i, stackTag);
+	    			compoundOut.set("stack"+i, stackTag);
 	    		}
 				byte[] toSendData = NBTCompressedStreamTools.a(compoundOut);
 				bukkitPlayer.sendPluginMessage(this, "EnchantView", toSendData);
@@ -130,16 +131,16 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 			if (enchList != null) {
 				Map<Enchantment, Integer> enchMap = new HashMap<Enchantment, Integer>();
 				enchMaps.put(player.getBukkitEntity().getDisplayName(), enchMap);
-				boolean isBook = newItemStack.id == Item.BOOK.id;
+				boolean isBook = newItemStack.getItem() == Items.BOOK;
 				if (isBook) {
-					newItemStack.id = Item.ENCHANTED_BOOK.id;
+					newItemStack.setItem(Items.ENCHANTED_BOOK);
 				}
 				int enchToPick = isBook ? random.nextInt(enchList.size()) : -1;
 				for (int i = 0; i < enchList.size(); ++i) {
 					EnchantmentInstance enchData = enchList.get(i);
 					if (!isBook || i == enchToPick) {
 						if (isBook) {
-							Item.ENCHANTED_BOOK.a(newItemStack, enchData);
+							Items.ENCHANTED_BOOK.a(newItemStack, enchData);
 							enchMap.put(Enchantment.getByName(enchData.enchantment.a()), enchData.level);
 						} else {
 							newItemStack.addEnchantment(enchData.enchantment,
