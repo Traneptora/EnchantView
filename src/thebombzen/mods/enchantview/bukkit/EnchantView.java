@@ -41,12 +41,17 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 	public boolean checkingItems = false;
 	
 	@Override
-    public void onEnable(){
+	public void onLoad(){
 		try {
-			Class.forName("net.minecraft.server.v1_7_R1.ItemStack", false, null);
+			Class.forName("net.minecraft.server.v1_7_R1.MinecraftServer", false, Bukkit.class.getClassLoader());
 		} catch (ClassNotFoundException e){
 			throw new RuntimeException("This version of EnchantView is incompatible with this version of craftbukkit.", e);
 		}
+	}
+	
+	
+	@Override
+    public void onEnable(){
 		enabled = true;
 		newItemStacksMap.clear();
 		enchMaps.clear();

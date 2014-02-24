@@ -26,7 +26,6 @@ import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import thebombzen.mods.enchantview.client.EVGuiEnchantment;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
-import thebombzen.mods.thebombzenapi.ThebombzenAPIConfiguration;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -128,8 +127,9 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		return newItemStack;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public ThebombzenAPIConfiguration<?> getConfiguration() {
+	public Configuration getConfiguration() {
 		return configuration;
 	}
 	
