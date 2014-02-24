@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,6 +182,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		if (event.getSide().equals(Side.CLIENT)) {
 			newItemStacks = new ItemStack[3];
 		}
+		FMLCommonHandler.instance().findContainerFor(this).getMetadata().authorList = Arrays.asList("Thebombzen");
 	}
 
 	@SubscribeEvent
