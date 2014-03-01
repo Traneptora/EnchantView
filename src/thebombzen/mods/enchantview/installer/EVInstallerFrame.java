@@ -2,18 +2,27 @@ package thebombzen.mods.enchantview.installer;
 
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.util.Scanner;
 import java.util.jar.JarFile;
 
 import javax.swing.Box;
@@ -77,14 +86,10 @@ public class EVInstallerFrame extends JFrame {
 	public static void main(String[] args) throws IOException {
 		new EVInstallerFrame().setVisible(true);
 	}
+	
 	private JTextField textField;
-	private JRadioButton installClient;
-	private JRadioButton installServer;
-	
-	private JButton install;
-	
-	private String clientDirectory = getMinecraftClientDirectory();
-	
+
+	private String clientDirectory = getMinecraftClientDirectory();	
 	private String serverDirectory = "";
 	
 	public EVInstallerFrame() throws IOException {
@@ -96,9 +101,9 @@ public class EVInstallerFrame extends JFrame {
 		
 		content.add(Box.createVerticalStrut(10));
 		
-		installClient = new JRadioButton("Install Client");
+		JRadioButton installClient = new JRadioButton("Install Client");
 		installClient.setSelected(true);
-		installServer = new JRadioButton("Install Server");
+		JRadioButton installServer = new JRadioButton("Install Server");
 		
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(installClient);
@@ -143,7 +148,7 @@ public class EVInstallerFrame extends JFrame {
 		
 		content.add(Box.createVerticalStrut(10));
 		
-		JLabel tbzapiLabel = new JLabel("Remember to also install ThebombzenAPI.");
+		/*JLabel tbzapiLabel = new JLabel("Remember to also install ThebombzenAPI.");
 		Box tbzapiLabelBox = Box.createHorizontalBox();
 		tbzapiLabelBox.add(tbzapiLabel);
 		tbzapiLabelBox.add(Box.createHorizontalGlue());
@@ -155,9 +160,9 @@ public class EVInstallerFrame extends JFrame {
 		linkBox.add(Box.createHorizontalGlue());
 		content.add(linkBox);
 		
-		content.add(Box.createVerticalStrut(10));
+		content.add(Box.createVerticalStrut(10));*/
 		
-		install = new JButton("Install EnchantView");
+		JButton install = new JButton("Install EnchantView");
 		Box installBox = Box.createHorizontalBox();
 		installBox.add(Box.createHorizontalGlue());
 		installBox.add(install);
@@ -217,7 +222,7 @@ public class EVInstallerFrame extends JFrame {
 			}
 		});
 		
-		linkLabel.addMouseListener(new MouseAdapter(){
+		/*linkLabel.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(MouseEvent me){
 				try {
@@ -228,7 +233,7 @@ public class EVInstallerFrame extends JFrame {
 					
 				}
 			}
-		});
+		});*/
 		
 		this.add(superBox);
 		
@@ -251,11 +256,33 @@ public class EVInstallerFrame extends JFrame {
 		textField.setText(serverDirectory);
 	}
 	
+	private String getThebombzenAPILatestVersion() throws IOException {
+		String latestVersion = null;
+		BufferedReader br = null;
+		try {
+			URL versionURL = new URL(
+					"https://dl.dropboxusercontent.com/u/51080973/mods/ThebombzenAPI/Latest.txt");
+			br = new BufferedReader(new InputStreamReader(
+					versionURL.openStream()));
+			latestVersion = br.readLine();
+			latestVersion += String.format("%n%s%n", br.readLine());
+		} catch (MalformedURLException e) {
+			throw new Error();
+		} finally {
+			br.close();
+		}
+		return latestVersion;
+	}
+	
 	private void install(){
 		try {
 			install(textField.getText());
 		} catch (Exception e){
-			JOptionPane.showMessageDialog(this, "Error installing. Install manually.", "Error Installing", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+			removeAllWindows();
+			JOptionPane.showMessageDialog(this,
+					"Error installing. Install manually.", "Error Installing",
+					JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -265,24 +292,83 @@ public class EVInstallerFrame extends JFrame {
 			JOptionPane.showMessageDialog(this, "Something's wrong with the given folder. Check spelling and try again.", "Hmmm...", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		final EVInstallerFrame instance = this;
+		new Thread(new Runnable(){
+			@Override
+			public void run(){
+				JOptionPane.showMessageDialog(instance, "Installing...", "Installing...", JOptionPane.INFORMATION_MESSAGE);
+			}
+		}).start();
+		
 		File modsFolder = new File(directory, "mods");
 		modsFolder.mkdir();
 		File file = new File(EVInstallerFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI());
 		JarFile jarFile = new JarFile(file);
 		if (jarFile.getEntry("thebombzen/mods/enchantview/installer/EVInstallerFrame.class") == null){
 			jarFile.close();
-			throw new Exception();
+			throw new Exception("Unable to find mod jarfile!");
 		}
 		jarFile.close();
+		installThebombzenAPI(directory);
 		File[] mods = modsFolder.listFiles();
 		for (File testMod : mods){
-			if (testMod.getName().matches("^EnchantView(Mod)?-v\\d\\.\\d(\\.\\d)?-mc\\d\\.\\d(\\.\\d)?\\.(jar|zip)$")){
+			if (testMod.getName().matches("^EnchantView(Mod)?-v\\d+\\.\\d+(\\.\\d+)?-mc\\d+\\.\\d+(\\.\\d+)?\\.(jar|zip)$")){
 				testMod.delete();
 			}
 		}
 		copyFile(file, new File(modsFolder, file.getName()));
+		removeAllWindows();
 		JOptionPane.showMessageDialog(this, "Successfully installed EnchantView!", "Success!", JOptionPane.INFORMATION_MESSAGE);
 		System.exit(0);
+	}
+	
+	public void installThebombzenAPI(String directory) throws Exception {	
+		String latest = getThebombzenAPILatestVersion();
+		Scanner scanner = new Scanner(latest);
+		scanner.useDelimiter(String.format("%n"));
+		String fileName = scanner.next();
+		String url = scanner.next();
+		scanner.close();
+		File modsFolder = new File(directory, "mods");
+		if (!modsFolder.exists()) {
+			modsFolder.mkdir();
+		}
+
+		File thebombzenAPI = new File(modsFolder, fileName);
+		
+		if (thebombzenAPI.exists()) {
+			return;
+		}
+
+		URL downloadURL = new URL(url);
+
+		File[] subFiles = modsFolder.listFiles();
+		for (File file : subFiles) {
+			if (file.getName()
+					.matches(
+							"^ThebombzenAPI-v\\d+\\.\\d+(\\.\\d+)?-mc\\d+\\.\\d+(\\.\\d+)?\\.(zip|jar)$")) {
+				file.delete();
+			}
+		}
+
+		FileOutputStream fos = new FileOutputStream(thebombzenAPI);
+		ReadableByteChannel channel = Channels.newChannel(downloadURL
+				.openStream());
+		fos.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
+		channel.close();
+		fos.close();
+	}
+	
+	private void removeAllWindows(){
+		for (final Window w : Window.getWindows()){
+			if (this != w){
+				EventQueue.invokeLater(new Runnable(){
+					public void run(){
+						w.dispose();
+					}
+				});
+			}
+		}
 	}
 	
 }
