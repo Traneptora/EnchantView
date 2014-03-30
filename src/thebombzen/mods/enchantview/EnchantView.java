@@ -43,7 +43,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "enchantview", name = "EnchantView", version = "4.0.1", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
+@Mod(modid = "enchantview", name = "EnchantView", version = "4.0.3pre1", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
 	public static final int STAGE_REQUEST = 0;
@@ -72,9 +72,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingForEnchantments;
-
-	@SideOnly(Side.CLIENT)
-	public volatile int currentWorldHashCode;
 
 	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 
@@ -147,7 +144,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public String getLongVersionString() {
-		return "EnchantView, version 4.0.1, Minecraft 1.7.2";
+		return "EnchantView, version 4.0.3pre1, Minecraft 1.7.2";
 	}
 
 	@Override
@@ -169,7 +166,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public String getVersionFileURLString() {
-		return "https://dl.dropboxusercontent.com/u/51080973/EnchantView/EVVersion.txt";
+		//return "https://dl.dropboxusercontent.com/u/51080973/Mods/EnchantView/EVVersion.txt";
+		return "";
 	}
 
 	@Override

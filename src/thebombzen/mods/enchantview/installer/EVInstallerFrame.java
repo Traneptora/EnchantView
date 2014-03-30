@@ -1,10 +1,9 @@
 package thebombzen.mods.enchantview.installer;
 
+import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Toolkit;
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -28,6 +27,7 @@ import java.util.jar.JarFile;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -91,6 +91,8 @@ public class EVInstallerFrame extends JFrame {
 
 	private String clientDirectory = getMinecraftClientDirectory();	
 	private String serverDirectory = "";
+	
+	private JDialog dialog;
 	
 	public EVInstallerFrame() throws IOException {
 		final EVInstallerFrame frame = this;
@@ -192,7 +194,12 @@ public class EVInstallerFrame extends JFrame {
 		install.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent ae){
-				install();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						install();
+					}
+				}).start();
 			}
 		});
 		
@@ -244,6 +251,18 @@ public class EVInstallerFrame extends JFrame {
 		Dimension size = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		this.setLocation((size.width - getWidth()) / 2, (size.height - getHeight()) / 2);
+		
+		dialog = new JDialog(this);
+		dialog.setLayout(new BorderLayout());
+		dialog.add(Box.createVerticalStrut(15), BorderLayout.NORTH);
+		dialog.add(Box.createVerticalStrut(15), BorderLayout.SOUTH);
+		dialog.add(Box.createHorizontalStrut(25), BorderLayout.WEST);
+		dialog.add(Box.createHorizontalStrut(25), BorderLayout.EAST);
+		dialog.add(new JLabel("Installing..."), BorderLayout.CENTER);
+		dialog.setTitle("Installing");
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.pack();
+		dialog.setLocation(this.getX() + (this.getWidth() - dialog.getWidth()) / 2, this.getY() + (this.getHeight() - dialog.getHeight()) / 2);
 	}
 	
 	private void clickedInstallClient(){
@@ -279,11 +298,12 @@ public class EVInstallerFrame extends JFrame {
 			install(textField.getText());
 		} catch (Exception e){
 			e.printStackTrace();
-			removeAllWindows();
+			dialog.dispose();
 			JOptionPane.showMessageDialog(this,
 					"Error installing. Install manually.", "Error Installing",
 					JOptionPane.ERROR_MESSAGE);
 		}
+		System.exit(0);
 	}
 
 	private void install(String directory) throws Exception {
@@ -292,13 +312,8 @@ public class EVInstallerFrame extends JFrame {
 			JOptionPane.showMessageDialog(this, "Something's wrong with the given folder. Check spelling and try again.", "Hmmm...", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		final EVInstallerFrame instance = this;
-		new Thread(new Runnable(){
-			@Override
-			public void run(){
-				JOptionPane.showMessageDialog(instance, "Installing...", "Installing...", JOptionPane.INFORMATION_MESSAGE);
-			}
-		}).start();
+		
+		dialog.setVisible(true);
 		
 		File modsFolder = new File(directory, "mods");
 		modsFolder.mkdir();
@@ -317,9 +332,8 @@ public class EVInstallerFrame extends JFrame {
 			}
 		}
 		copyFile(file, new File(modsFolder, file.getName()));
-		removeAllWindows();
+		dialog.dispose();
 		JOptionPane.showMessageDialog(this, "Successfully installed EnchantView!", "Success!", JOptionPane.INFORMATION_MESSAGE);
-		System.exit(0);
 	}
 	
 	public void installThebombzenAPI(String directory) throws Exception {	
@@ -357,18 +371,6 @@ public class EVInstallerFrame extends JFrame {
 		fos.getChannel().transferFrom(channel, 0, Long.MAX_VALUE);
 		channel.close();
 		fos.close();
-	}
-	
-	private void removeAllWindows(){
-		for (final Window w : Window.getWindows()){
-			if (this != w){
-				EventQueue.invokeLater(new Runnable(){
-					public void run(){
-						w.dispose();
-					}
-				});
-			}
-		}
 	}
 	
 }

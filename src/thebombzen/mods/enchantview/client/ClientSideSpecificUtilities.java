@@ -2,7 +2,7 @@ package thebombzen.mods.enchantview.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
-import thebombzen.mods.enchantview.ConfigOption;
+import thebombzen.mods.enchantview.Configuration;
 import thebombzen.mods.enchantview.EnchantView;
 import thebombzen.mods.enchantview.SideSpecificUtilities;
 import cpw.mods.fml.relauncher.Side;
@@ -16,7 +16,7 @@ public class ClientSideSpecificUtilities implements SideSpecificUtilities {
 				.getCommandSenderName();
 		if (ownerName.equals(player.getCommandSenderName())) {
 			return true;
-		} else if (EnchantView.instance.getConfiguration().getPropertyBoolean(ConfigOption.ALLOW_ON_LAN)) {
+		} else if (EnchantView.instance.getConfiguration().getBooleanProperty(Configuration.ALLOW_ON_LAN)) {
 			return true;
 		} else {
 			return false;

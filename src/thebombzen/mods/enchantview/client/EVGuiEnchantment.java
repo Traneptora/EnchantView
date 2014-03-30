@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 import org.lwjgl.util.glu.Project;
 
-import thebombzen.mods.enchantview.ConfigOption;
+import thebombzen.mods.enchantview.Configuration;
 import thebombzen.mods.enchantview.EnchantView;
 import thebombzen.mods.thebombzenapi.ThebombzenAPI;
 import cpw.mods.fml.relauncher.Side;
@@ -28,26 +28,16 @@ import cpw.mods.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class EVGuiEnchantment extends GuiEnchantment {
 
-	/*
-	 * public static final ResourceLocation enchantingTableGuiTextures =
-	 * ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, new String[] {
-	 * "enchantingTableGuiTextures", "field_147078_C", "C" }); public static
-	 * final ResourceLocation enchantingTableBookTextures =
-	 * ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, new String[] {
-	 * "enchantingTableBookTextures", "field_147070_D", "D" });
-	 * 
-	 * public static final ModelBook bookModel =
-	 * ThebombzenAPI.getPrivateField(null, GuiEnchantment.class, new String[]{
-	 * "bookModel", "field_147072_E", "E" });
-	 */
 	public static final ResourceLocation enchantingTableGuiTextures = ThebombzenAPI
-			.getPrivateField(null, GuiEnchantment.class,
-					"enchantingTableGuiTextures");
+			.getPrivateField(null, GuiEnchantment.class, new String[] {
+					"enchantingTableGuiTextures", "field_147078_C", "C" });
 	public static final ResourceLocation enchantingTableBookTextures = ThebombzenAPI
-			.getPrivateField(null, GuiEnchantment.class,
-					"enchantingTableBookTextures");
+			.getPrivateField(null, GuiEnchantment.class, new String[] {
+					"enchantingTableBookTextures", "field_147070_D", "D" });
+
 	public static final ModelBook bookModel = ThebombzenAPI.getPrivateField(
-			null, GuiEnchantment.class, "bookModel");
+			null, GuiEnchantment.class, new String[] { "bookModel",
+					"field_147072_E", "E" });
 
 	public static EVGuiEnchantment instance;
 	public static int prevLevelsHashCode = 0;
@@ -57,36 +47,19 @@ public class EVGuiEnchantment extends GuiEnchantment {
 	public ContainerEnchantment containerEnchantment;
 
 	public EVGuiEnchantment(GuiEnchantment parent) {
-		super(null, null, 0, 0, 0, (String) ThebombzenAPI.getPrivateField(
-				parent, GuiEnchantment.class, new String[] { "field_147079_H",
-						"H" }));
-		this.containerEnchantment = (ContainerEnchantment) ThebombzenAPI
-				.getPrivateField(parent, GuiEnchantment.class, new String[] {
-						"containerEnchantment", "field_147075_G", "G" });
-		ThebombzenAPI.setPrivateField(this, GuiEnchantment.class, new String[] {
-				"containerEnchantment", "field_147075_G", "G" },
-				this.containerEnchantment);
+		super(null, null, 0, 0, 0, (String)ThebombzenAPI.getPrivateField(parent, GuiEnchantment.class, "field_147079_H", "H"));
+		this.containerEnchantment = ThebombzenAPI.getPrivateField(parent, GuiEnchantment.class, "containerEnchantment", "field_147075_G", "G");
+		ThebombzenAPI.setPrivateField(this, GuiEnchantment.class, this.containerEnchantment, "containerEnchantment", "field_147075_G", "G");
 		this.inventorySlots = this.containerEnchantment;
 		instance = this;
-		if (System.identityHashCode(mc.theWorld) != EnchantView.instance.currentWorldHashCode) {
-
-			boolean shouldAsk = true;
-			if (!EnchantView.instance.getConfiguration().getPropertyBoolean(
-					ConfigOption.ENABLE_SP)
-					&& mc.isSingleplayer()) {
-				shouldAsk = false;
-			} else if (!EnchantView.instance.getConfiguration()
-					.getPropertyBoolean(ConfigOption.ENABLE_MP)
-					&& !mc.isSingleplayer()) {
-				shouldAsk = false;
-			}
+		
+		if (ThebombzenAPI.hasWorldChanged()) {
+			boolean shouldAsk = EnchantView.instance.getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
 
 			if (shouldAsk) {
 				EnchantView.instance.askingIfEnchantViewExists = true;
 				mc.getNetHandler().addToSendQueue(
 						new C01PacketChatMessage("/doesenchantviewexist"));
-				EnchantView.instance.currentWorldHashCode = System
-						.identityHashCode(mc.theWorld);
 			} else {
 				EnchantView.instance.enchantViewExists = false;
 			}
