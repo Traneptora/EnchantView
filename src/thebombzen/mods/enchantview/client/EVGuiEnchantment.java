@@ -53,16 +53,13 @@ public class EVGuiEnchantment extends GuiEnchantment {
 		this.inventorySlots = this.containerEnchantment;
 		instance = this;
 		
-		if (ThebombzenAPI.hasWorldChanged()) {
-			boolean shouldAsk = EnchantView.instance.getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
-
-			if (shouldAsk) {
-				EnchantView.instance.askingIfEnchantViewExists = true;
-				mc.getNetHandler().addToSendQueue(
-						new C01PacketChatMessage("/doesenchantviewexist"));
-			} else {
-				EnchantView.instance.enchantViewExists = false;
-			}
+		boolean shouldAsk = EnchantView.instance.getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
+		if (shouldAsk) {
+			EnchantView.instance.askingIfEnchantViewExists = true;
+			mc.getNetHandler().addToSendQueue(
+					new C01PacketChatMessage("/doesenchantviewexist"));
+		} else {
+			EnchantView.instance.enchantViewExists = false;
 		}
 	}
 
