@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 
 public class EVInstallerFrame extends JFrame {
 	
@@ -260,7 +261,7 @@ public class EVInstallerFrame extends JFrame {
 		dialog.add(Box.createHorizontalStrut(25), BorderLayout.EAST);
 		dialog.add(new JLabel("Installing..."), BorderLayout.CENTER);
 		dialog.setTitle("Installing");
-		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		dialog.pack();
 		dialog.setLocation(this.getX() + (this.getWidth() - dialog.getWidth()) / 2, this.getY() + (this.getHeight() - dialog.getHeight()) / 2);
 	}
