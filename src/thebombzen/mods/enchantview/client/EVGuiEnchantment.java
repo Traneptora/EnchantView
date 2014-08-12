@@ -78,7 +78,7 @@ public class EVGuiEnchantment extends GuiEnchantment {
 		GL11.glPushMatrix();
 		GL11.glLoadIdentity();
 		ScaledResolution scaledresolution = new ScaledResolution(
-				mc.gameSettings, mc.displayWidth, mc.displayHeight);
+				mc, mc.displayWidth, mc.displayHeight);
 		GL11.glViewport((scaledresolution.getScaledWidth() - 320) / 2
 				* scaledresolution.getScaleFactor(),
 				(scaledresolution.getScaledHeight() - 240) / 2
