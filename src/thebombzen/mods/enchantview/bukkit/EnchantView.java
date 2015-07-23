@@ -1,25 +1,26 @@
 package thebombzen.mods.enchantview.bukkit;
 
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import net.minecraft.server.v1_7_R1.ContainerEnchantTable;
-import net.minecraft.server.v1_7_R1.EnchantmentInstance;
-import net.minecraft.server.v1_7_R1.EnchantmentManager;
-import net.minecraft.server.v1_7_R1.EntityPlayer;
-import net.minecraft.server.v1_7_R1.ItemStack;
-import net.minecraft.server.v1_7_R1.Items;
-import net.minecraft.server.v1_7_R1.NBTCompressedStreamTools;
-import net.minecraft.server.v1_7_R1.NBTTagCompound;
+import net.minecraft.server.v1_7_R3.ContainerEnchantTable;
+import net.minecraft.server.v1_7_R3.EnchantmentInstance;
+import net.minecraft.server.v1_7_R3.EnchantmentManager;
+import net.minecraft.server.v1_7_R3.EntityPlayer;
+import net.minecraft.server.v1_7_R3.ItemStack;
+import net.minecraft.server.v1_7_R3.Items;
+import net.minecraft.server.v1_7_R3.NBTCompressedStreamTools;
+import net.minecraft.server.v1_7_R3.NBTTagCompound;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.enchantment.EnchantItemEvent;
@@ -43,7 +44,7 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 	@Override
 	public void onLoad(){
 		try {
-			Class.forName("net.minecraft.server.v1_7_R1.MinecraftServer", false, Bukkit.class.getClassLoader());
+			Class.forName("net.minecraft.server.v1_7_R3.MinecraftServer", false, Bukkit.class.getClassLoader());
 		} catch (ClassNotFoundException e){
 			throw new RuntimeException("This version of EnchantView is incompatible with this version of craftbukkit.", e);
 		}
@@ -88,7 +89,7 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 			return;
 		}
 		if (channel.equals("EnchantView")){
-			NBTTagCompound compoundIn = NBTCompressedStreamTools.a(data);
+			NBTTagCompound compoundIn = NBTCompressedStreamTools.a(new ByteArrayInputStream(data));
 			int stage = compoundIn.getInt("stage");
 			EntityPlayer player = getEntityPlayerForPlayer(bukkitPlayer);
 			if (player == null){
@@ -164,7 +165,6 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 		if (!table.getType().equals(Material.ENCHANTMENT_TABLE)){
 			table = null;
 		}
-		
 		EnchantItemEvent enchantItemEvent = new EnchantItemEvent(bukkitPlayer, container.getBukkitView(), table, container.getBukkitView().getItem(0), container.costs[slot], enchMaps.get(bukkitPlayer.getDisplayName()), slot);
 		Bukkit.getServer().getPluginManager().callEvent(enchantItemEvent);
 		if (!enchantItemEvent.isCancelled()){
