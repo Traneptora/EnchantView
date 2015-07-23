@@ -1,5 +1,6 @@
 package thebombzen.mods.enchantview.bukkit;
 
+/*
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -177,3 +178,4 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 	}
 	
 }
+*/

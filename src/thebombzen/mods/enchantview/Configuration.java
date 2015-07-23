@@ -1,12 +1,11 @@
 package thebombzen.mods.enchantview;
 
 import thebombzen.mods.thebombzenapi.configuration.ConfigOption;
-import thebombzen.mods.thebombzenapi.configuration.SingleMultiBoolean;
 import thebombzen.mods.thebombzenapi.configuration.ThebombzenAPIConfiguration;
 
 public class Configuration extends ThebombzenAPIConfiguration {
 	
-	
+	/*
 	public static ConfigOption ENABLE = new ConfigOption(SingleMultiBoolean.ALWAYS, "ENABLE", "Enable EnchantView",
 		"Enable EnchantView.",
 		"Keep in mind that it only works",
@@ -16,6 +15,7 @@ public class Configuration extends ThebombzenAPIConfiguration {
 		"This option determines whether",
 		"to allow players on your LAN",
 		"world to use EnchantView.");
+	*/
 	
 	public Configuration(EnchantView baseMod) {
 		super(baseMod);
@@ -23,7 +23,8 @@ public class Configuration extends ThebombzenAPIConfiguration {
 
 	@Override
 	public ConfigOption[] getAllOptions() {
-		return new ConfigOption[]{ENABLE, ALLOW_ON_LAN};
+		//return new ConfigOption[]{ENABLE, ALLOW_ON_LAN};
+		return new ConfigOption[]{};
 	}
 
 }
