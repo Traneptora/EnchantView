@@ -12,7 +12,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiEnchantment;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,10 +25,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
+import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import thebombzen.mods.enchantview.client.EVGuiEnchantment;
+import thebombzen.mods.thebombzenapi.ThebombzenAPI;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -43,13 +50,15 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "enchantview", name = "EnchantView", version = "4.0.4", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
+@Mod(modid = "enchantview", name = "EnchantView", version = "4.1.0", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
 	public static final int STAGE_REQUEST = 0;
 	public static final int STAGE_SEND = 1;
 	public static final int STAGE_ACCEPT = 2;
 	public static final Random random = new Random();
+	public static final Minecraft mc = Minecraft.getMinecraft();
+	
 	
 	public FMLEventChannel channel;
 
@@ -72,6 +81,14 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingForEnchantments;
+	@SideOnly(Side.CLIENT)
+	public volatile int prevLevelsHashCode = 0;
+	@SideOnly(Side.CLIENT)
+	public volatile int drawMe = -1;
+	@SideOnly(Side.CLIENT)
+	public ContainerEnchantment clientContainerEnchantment;
+	
+	public int[] prevServerEnchantmentLevels = new int[3];
 
 	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 
@@ -144,7 +161,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public String getLongVersionString() {
-		return "EnchantView, version 4.0.4, Minecraft 1.7.10";
+		return "EnchantView, version 4.1.0, Minecraft 1.7.10";
 	}
 
 	@Override
@@ -194,10 +211,66 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
+	public void preDrawScreenEvent(DrawScreenEvent.Pre event){
+		if (!(event.gui instanceof GuiEnchantment)){
+			return;
+		}
+		if (enchantViewExists
+				&& clientContainerEnchantment.enchantLevels[0] != 0
+				&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null) {
+			if (!askingForEnchantments
+					&& (newItemStacks[0] == null || prevLevelsHashCode != Arrays
+							.hashCode(clientContainerEnchantment.enchantLevels))) {
+				requestEnchantmentListFromServer(this.clientContainerEnchantment.windowId);
+			}
+		} else {
+			Arrays.fill(newItemStacks, null);
+		}
+		int xSize = ThebombzenAPI.getPrivateField(event.gui, GuiContainer.class, "xSize");
+		int ySize = ThebombzenAPI.getPrivateField(event.gui, GuiContainer.class, "ySize");
+		int xPos = (event.gui.width - xSize) / 2;
+		int yPos = (event.gui.width - ySize) / 2;
+		drawMe = -1;
+		for (int i = 0; i < 3; i++){
+			int mouseRelX = event.mouseX - (xPos + 60);
+			int mouseRelY = event.mouseY - (yPos + 14 + 19 * i);
+			if (mouseRelX >= 0 && mouseRelY >= 0 && mouseRelX < 108 && mouseRelY < 19) {
+				drawMe = i;
+			}
+		}
+	}
+	
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void postDrawScreenEvent(DrawScreenEvent.Post event){
+		if (drawMe != -1
+				&& EnchantView.instance.enchantViewExists
+				&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null
+				&& EnchantView.instance.newItemStacks[drawMe] != null) {
+			ThebombzenAPI.invokePrivateMethod(event.gui, GuiScreen.class, "renderToolTip", new Class<?>[]{ItemStack.class, int.class, int.class}, newItemStacks[drawMe],
+					event.mouseX + 8, event.mouseY + 8);
+		}
+	}
+	
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
 	public void onOpenGui(GuiOpenEvent event) {
-		if (event.gui instanceof GuiEnchantment
+		if (mc.theWorld == null){
+			return;
+		}
+		/*if (event.gui instanceof GuiEnchantment
 				&& !(event.gui instanceof EVGuiEnchantment)) {
 			event.gui = new EVGuiEnchantment((GuiEnchantment) event.gui);
+		}*/
+		if (event.gui instanceof GuiEnchantment){
+			boolean shouldAsk = getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
+			if (shouldAsk) {
+				askingIfEnchantViewExists = true;
+				mc.thePlayer.sendChatMessage("/doesenchantviewexist");
+				clientContainerEnchantment = (ContainerEnchantment)mc.thePlayer.inventoryContainer;
+			} else {
+				enchantViewExists = false;
+			}
 		}
 	}
 
@@ -211,7 +284,23 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		event.packet.payload().readBytes(payload);
 		receiveEnchantmentsListFromServer(payload);
 	}
-
+	
+	@SubscribeEvent
+	public void onPlayerHasContainerOpen(PlayerOpenContainerEvent event){
+		if (event.entityPlayer.worldObj.isRemote){
+			return;
+		}
+		if (!(event.entityPlayer.openContainer instanceof ContainerEnchantment)){
+			return;
+		}
+		ContainerEnchantment container = (ContainerEnchantment)event.entityPlayer.openContainer;
+		if (Arrays.equals(container.enchantLevels, prevServerEnchantmentLevels)){
+			return;
+		} else {
+			
+		}
+	}
+	
 	@SubscribeEvent
 	public void onPacketToServer(ServerCustomPacketEvent event) {
 		if (!event.packet.channel().equals("EnchantView")){
