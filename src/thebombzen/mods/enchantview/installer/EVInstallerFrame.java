@@ -36,7 +36,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
-import thebombzen.mods.thebombzenapi.Constants;
+import thebombzen.mods.enchantview.Constants;
 
 public class EVInstallerFrame extends JFrame {
 	
