@@ -19,6 +19,7 @@ import net.minecraftforge.fml.common.Mod.Instance;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.ServerTickEvent;
+import net.minecraftforge.fml.common.network.NetworkCheckHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import thebombzen.mods.thebombzenapi.ThebombzenAPI;
@@ -69,6 +70,14 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	 * of multiple players at once on the server.
 	 */
 	private Map<UUID, int[][]> hints = new HashMap<UUID, int[][]>();
+	
+	/**
+	 * Do not reject vanilla clients or vanilla servers.
+	 */
+	@NetworkCheckHandler
+	public boolean checkNetwork(Map<String, String> modsList, Side remote){
+		return true;
+	}
 	
 	/**
 	 * This is the main event ticker. It only ticks when the player has an open container so we can rule out other ticks.
