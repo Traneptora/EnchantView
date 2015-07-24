@@ -25,5 +25,5 @@ echo >>META-INF/MANIFEST.MF "Main-Class: thebombzen.mods.$BASENAME.installer.${S
 
 zip -u $ARCH META-INF/MANIFEST.MF
 zip -d $ARCH "thebombzen/mods/thebombzenapi*"
-
+zip -d $ARCH plugin.yml
 
