@@ -2,7 +2,7 @@
 {
   "modid": "enchantview",
   "name": "EnchantView",
-  "description": "EnchantView allows you to see the enchantments you'll receive from the enchantment table before you enchant your item. Note that the server needs the mod for you to see the enchantments in multiplayer.",
+  "description": "EnchantView allows you to see all the enchantments you'll receive from the enchantment table before you enchant your item, rather than just one. It also refreshes the enchantment list with each try rather than only after enchanting.",
   "version": "5.0.0",
   "credits": "Thebombzen",
   "mcversion": "1.8",
