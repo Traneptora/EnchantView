@@ -17,13 +17,13 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "4.0.4"
+version = "4.1.0"
 group= "thebombzen.mods.enchantview" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "enchantview"
 
 minecraft {
-    version = "1.7.10-10.13.0.1200"
-    assetDir = "eclipse/assets"
+    version = "1.7.10-10.13.4.1492-1.7.10"
+    runDir = "eclipse"
 }
 
 dependencies {
