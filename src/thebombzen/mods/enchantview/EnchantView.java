@@ -81,7 +81,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	/**
 	 * This is a shortcut for Minecraft.getMinecraft()
 	 */
-	public static final Minecraft mc = Minecraft.getMinecraft();
+	@SideOnly(Side.CLIENT)
+	public static Minecraft mc;
 	
 	/**
 	 * This is the event channel that we use to communicate between client and server
@@ -297,6 +298,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		channel.register(this);
 		configuration = new Configuration(this);
 		if (event.getSide().equals(Side.CLIENT)) {
+			mc = Minecraft.getMinecraft();
 			newItemStacks = new ItemStack[3];
 		}
 		FMLCommonHandler.instance().findContainerFor(this).getMetadata().authorList = Arrays.asList("Thebombzen");
@@ -389,31 +391,36 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		if (!(event.gui instanceof GuiEnchantment)){
 			return;
 		}
-		drawMe = -1;
-		if (enchantViewExists
-				&& clientContainerEnchantment.enchantLevels[0] != 0
-				&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null) {
-			if (!askingForEnchantments
-					&& (newItemStacks[0] == null || prevLevelsHashCode != Arrays
-							.hashCode(clientContainerEnchantment.enchantLevels))) {
-				requestEnchantmentListFromServer(this.clientContainerEnchantment.windowId);
-				prevLevelsHashCode = Arrays.hashCode(clientContainerEnchantment.enchantLevels);
+		try {
+			drawMe = -1;
+			if (enchantViewExists
+					&& clientContainerEnchantment.enchantLevels[0] != 0
+					&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null) {
+				if (!askingForEnchantments
+						&& (newItemStacks[0] == null || prevLevelsHashCode != Arrays
+								.hashCode(clientContainerEnchantment.enchantLevels))) {
+					requestEnchantmentListFromServer(this.clientContainerEnchantment.windowId);
+					prevLevelsHashCode = Arrays.hashCode(clientContainerEnchantment.enchantLevels);
+				}
+			} else {
+				Arrays.fill(newItemStacks, null);
+				return;
 			}
-		} else {
-			Arrays.fill(newItemStacks, null);
-			return;
-		}
-		int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize", "field_146999_f", "f");
-		int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize", "field_147000_g", "g");
-		int xPos = (event.gui.width - xSize) / 2;
-		int yPos = (event.gui.height - ySize) / 2;
-		for (int i = 0; i < 3; i++){
-			int mouseRelX = event.mouseX - (xPos + 60);
-			int mouseRelY = event.mouseY - (yPos + 14 + 19 * i);
-			if (mouseRelX >= 0 && mouseRelY >= 0 && mouseRelX < 108 && mouseRelY < 19) {
-				drawMe = i;
+			int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize", "field_146999_f", "f");
+			int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize", "field_147000_g", "g");
+			int xPos = (event.gui.width - xSize) / 2;
+			int yPos = (event.gui.height - ySize) / 2;
+			for (int i = 0; i < 3; i++){
+				int mouseRelX = event.mouseX - (xPos + 60);
+				int mouseRelY = event.mouseY - (yPos + 14 + 19 * i);
+				if (mouseRelX >= 0 && mouseRelY >= 0 && mouseRelX < 108 && mouseRelY < 19) {
+					drawMe = i;
+				}
 			}
+		} catch (Throwable e){
+			throwException("PreDrawScreen", e, false);
 		}
+		
 	}
 	
 	/**
@@ -426,8 +433,11 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 				&& EnchantView.instance.enchantViewExists
 				&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null
 				&& EnchantView.instance.newItemStacks[drawMe] != null) {
-			ThebombzenAPI.invokePrivateMethod(event.gui, GuiScreen.class, "renderToolTip", new Class<?>[]{ItemStack.class, int.class, int.class}, newItemStacks[drawMe],
-					event.mouseX + 8, event.mouseY + 8);
+			try {
+				ThebombzenAPI.invokePrivateMethod(event.gui, GuiScreen.class, new String[]{"renderToolTip", "func_146285_a", "a"}, new Class<?>[]{ItemStack.class, int.class, int.class}, newItemStacks[drawMe], event.mouseX + 8, event.mouseY + 8);
+			} catch (Throwable t){
+				throwException("PostDrawScreen", t, false);
+			}
 		}
 	}
 	
@@ -440,16 +450,21 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		if (mc.theWorld == null){
 			return;
 		}
-		if (event.gui instanceof GuiEnchantment){
-			boolean shouldAsk = getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
-			if (shouldAsk) {
-				askingIfEnchantViewExists = true;
-				mc.thePlayer.sendChatMessage("/doesenchantviewexist");
-				clientContainerEnchantment = (ContainerEnchantment)((GuiEnchantment)event.gui).inventorySlots;
-			} else {
-				enchantViewExists = false;
+		try {
+			if (event.gui instanceof GuiEnchantment){
+				boolean shouldAsk = getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
+				if (shouldAsk) {
+					askingIfEnchantViewExists = true;
+					mc.thePlayer.sendChatMessage("/doesenchantviewexist");
+					clientContainerEnchantment = (ContainerEnchantment)((GuiEnchantment)event.gui).inventorySlots;
+				} else {
+					enchantViewExists = false;
+				}
 			}
+		} catch (Throwable t){
+			throwException("OpenGui", t, false);
 		}
+		
 	}
 	
 	/**
@@ -458,12 +473,16 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onPacketToClient(ClientCustomPacketEvent event){
-		if (!event.packet.channel().equals("EnchantView")){
-			return;
+		try {
+			if (!event.packet.channel().equals("EnchantView")){
+				return;
+			}
+			byte[] payload = new byte[event.packet.payload().readableBytes()];
+			event.packet.payload().readBytes(payload);
+			receiveEnchantmentsListFromServer(payload);
+		} catch (Throwable t){
+			throwException("PacketToClient", t, false);
 		}
-		byte[] payload = new byte[event.packet.payload().readableBytes()];
-		event.packet.payload().readBytes(payload);
-		receiveEnchantmentsListFromServer(payload);
 	}
 	
 	/**
@@ -473,51 +492,60 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	 */
 	@SubscribeEvent
 	public void onPacketToServer(ServerCustomPacketEvent event) {
-		if (!event.packet.channel().equals("EnchantView")){
-			return;
-		}
-		EntityPlayerMP player = ((NetHandlerPlayServer)event.handler).playerEntity;
 		try {
-			byte[] payload = new byte[event.packet.payload().readableBytes()];
-			event.packet.payload().readBytes(payload);
-			NBTTagCompound compoundIn;
-			compoundIn = CompressedStreamTools.readCompressed(new ByteArrayInputStream(payload));
-			int stage = compoundIn.getInteger("stage");
-			int windowId = compoundIn.getInteger("windowId");
-			if (player.openContainer.windowId != windowId) {
+			if (!event.packet.channel().equals("EnchantView")) {
 				return;
 			}
-			if (!(player.openContainer instanceof ContainerEnchantment)) {
-				return;
-			}
-			ContainerEnchantment container = (ContainerEnchantment) player.openContainer;
-			if (stage == STAGE_REQUEST) {
-				ItemStack[] newItemStacks = new ItemStack[3];
-				for (int i = 0; i < 3; i++) {
-					newItemStacks[i] = generateEnchantedItemStack(container, player, i);
+			EntityPlayerMP player = ((NetHandlerPlayServer) event.handler).playerEntity;
+			try {
+				byte[] payload = new byte[event.packet.payload()
+						.readableBytes()];
+				event.packet.payload().readBytes(payload);
+				NBTTagCompound compoundIn;
+				compoundIn = CompressedStreamTools
+						.readCompressed(new ByteArrayInputStream(payload));
+				int stage = compoundIn.getInteger("stage");
+				int windowId = compoundIn.getInteger("windowId");
+				if (player.openContainer.windowId != windowId) {
+					return;
 				}
-				newItemStacksMap.put(player.getUniqueID(), newItemStacks);
-				ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
-				NBTTagCompound compoundOut = new NBTTagCompound();
-				compoundOut.setInteger("stage", STAGE_SEND);
-				for (int i = 0; i < 3; i++) {
-					NBTTagCompound stackTag = new NBTTagCompound();
-					newItemStacks[i].writeToNBT(stackTag);
-					compoundOut.setTag("stack" + i, stackTag);
+				if (!(player.openContainer instanceof ContainerEnchantment)) {
+					return;
 				}
-				CompressedStreamTools.writeCompressed(compoundOut, byteOut);
-				FMLProxyPacket packetSend = new FMLProxyPacket(Unpooled.wrappedBuffer(byteOut.toByteArray()), "EnchantView");
-				channel.sendTo(packetSend, player);
-			} else if (stage == STAGE_ACCEPT) {
-				int slot = compoundIn.getInteger("slot");
-				enchantItem(container, player, slot);
-				newItemStacksMap.put(player.getUniqueID(), new ItemStack[3]);
+				ContainerEnchantment container = (ContainerEnchantment) player.openContainer;
+				if (stage == STAGE_REQUEST) {
+					ItemStack[] newItemStacks = new ItemStack[3];
+					for (int i = 0; i < 3; i++) {
+						newItemStacks[i] = generateEnchantedItemStack(
+								container, player, i);
+					}
+					newItemStacksMap.put(player.getUniqueID(), newItemStacks);
+					ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+					NBTTagCompound compoundOut = new NBTTagCompound();
+					compoundOut.setInteger("stage", STAGE_SEND);
+					for (int i = 0; i < 3; i++) {
+						NBTTagCompound stackTag = new NBTTagCompound();
+						newItemStacks[i].writeToNBT(stackTag);
+						compoundOut.setTag("stack" + i, stackTag);
+					}
+					CompressedStreamTools.writeCompressed(compoundOut, byteOut);
+					FMLProxyPacket packetSend = new FMLProxyPacket(
+							Unpooled.wrappedBuffer(byteOut.toByteArray()),
+							"EnchantView");
+					channel.sendTo(packetSend, player);
+				} else if (stage == STAGE_ACCEPT) {
+					int slot = compoundIn.getInteger("slot");
+					enchantItem(container, player, slot);
+					newItemStacksMap
+							.put(player.getUniqueID(), new ItemStack[3]);
+				}
+			} catch (IOException ioe) {
+				// this will never happen
 			}
-		} catch (IOException ioe) {
-			// this will never happen
+		} catch (Throwable t) {
+			throwException("PacketToServer", t, false);
 		}
 	}
-
 	/**
 	 * Register the command on server start
 	 */
