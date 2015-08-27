@@ -1,6 +1,6 @@
 name: EnchantView
 main: thebombzen.mods.enchantview.bukkit.EnchantView
-version: 2.3.1
+version: 2.3.2
 commands:
   doesenchantviewexist:
     description: Asks whether EnchantView exists on this server.
