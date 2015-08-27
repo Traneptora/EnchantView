@@ -25,13 +25,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetHandlerPlayServer;
-import net.minecraft.network.play.client.C01PacketChatMessage;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
-import thebombzen.mods.enchantview.client.EVGuiEnchantment;
 import thebombzen.mods.thebombzenapi.ThebombzenAPI;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -226,8 +224,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		} else {
 			Arrays.fill(newItemStacks, null);
 		}
-		int xSize = ThebombzenAPI.getPrivateField(event.gui, GuiContainer.class, "xSize");
-		int ySize = ThebombzenAPI.getPrivateField(event.gui, GuiContainer.class, "ySize");
+		int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize");
+		int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize");
 		int xPos = (event.gui.width - xSize) / 2;
 		int yPos = (event.gui.width - ySize) / 2;
 		drawMe = -1;
