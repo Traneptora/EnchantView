@@ -147,7 +147,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	}
 	
 	@Override
-	@SideOnly(Side.CLIENT)
 	public String getDownloadLocationURLString() {
 		return "http://is.gd/ThebombzensMods#EnchantView";
 	}
