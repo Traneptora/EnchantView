@@ -53,51 +53,128 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * This is the main EnchantView mod file
+ * @author thebombzen
+ */
 @Mod(modid = "enchantview", name = "EnchantView", version = Constants.VERSION, dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
+	/**
+	 * This represents the stage where the client is requesting the enchantment list from the server
+	 */
 	public static final int STAGE_REQUEST = 0;
+	/**
+	 * This represents the stage where the server is sending the enchantment list to the client
+	 */
 	public static final int STAGE_SEND = 1;
+	/**
+	 * This represents the stage where the client is accepting the given enchantment list
+	 */
 	public static final int STAGE_ACCEPT = 2;
+	
+	/**
+	 * The Random Number Generator we use
+	 */
 	public static final Random random = new Random();
+	
+	/**
+	 * This is a shortcut for Minecraft.getMinecraft()
+	 */
 	public static final Minecraft mc = Minecraft.getMinecraft();
 	
-	
+	/**
+	 * This is the event channel that we use to communicate between client and server
+	 */
 	public FMLEventChannel channel;
 
+	/**
+	 * This field stores the main EnchantView client instance
+	 */
 	@Instance(value = "enchantview")
 	public static EnchantView instance;
 
+	/**
+	 * Contains side-specific utilities in a sided proxy
+	 */
 	@SidedProxy(clientSide = "thebombzen.mods.enchantview.client.ClientSideSpecificUtilities", serverSide = "thebombzen.mods.enchantview.server.ServerSideSpecificUtilities")
 	public static SideSpecificUtilities sideSpecificUtilities;
 
+	/**
+	 * The configuration for ThebombzenAPI
+	 */
 	private Configuration configuration;
 
+	/**
+	 * The three ItemStacks that the server has provided as potential enchantments
+	 */
 	@SideOnly(Side.CLIENT)
 	public ItemStack[] newItemStacks;
+	
+	/**
+	 * Set to true if the client has detected that EnchantView exists on the server
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile boolean enchantViewExists;
+	
+	/**
+	 * Set to true while the client is asking if the server has EnchantView
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingIfEnchantViewExists;
+	
+	/**
+	 * Set to true while the client has requested an enchantments list but has not received it yet
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingForEnchantments;
+	
+	/**
+	 * Set to true while the client has accepted the enchantment list but it has not changed yet
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile boolean acceptingEnchantments;
+	
+	/**
+	 * This stores the Arrays.hashCode of the enchantment levels during the previous tick
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile int prevLevelsHashCode;
+	
+	/**
+	 * The slot for which a tooltip should be drawn
+	 */
 	@SideOnly(Side.CLIENT)
 	public volatile int drawMe;
+	
+	/**
+	 * The enchantment Container on the client-side
+	 */
 	@SideOnly(Side.CLIENT)
 	public ContainerEnchantment clientContainerEnchantment;
 	
-	
+	/**
+	 * Whether we've artificially changed the touchscreen settings
+	 * (used to disable handling mouse input)
+	 */
 	@SideOnly(Side.CLIENT)
-	private volatile boolean changed;
+	private volatile boolean touchscreen_changed;
+	
+	/**
+	 * The previous stored value of the touchscreen setting
+	 */
 	@SideOnly(Side.CLIENT)
 	private volatile boolean touchscreen;
+	
+	/**
+	 * The previous stored value of the touchscreen countdown
+	 */
 	@SideOnly(Side.CLIENT)
 	private volatile int field_h;
 
+	/**
+	 * This is the map of stored item stacks, based on the EntityPlayer UUID
+	 */
 	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 	
 	/**
@@ -108,6 +185,12 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		return true;
 	}
 
+	/**
+	 * Actually enchant the item on the server-side
+	 * @param container The server-side Container
+	 * @param player The EntityPlayer for whom we're enchanting
+	 * @param slot An integer between 0 and 2, inclusive.
+	 */
 	public void enchantItem(ContainerEnchantment container,
 			EntityPlayerMP player, int slot) {
 		ItemStack stack = newItemStacksMap.get(player.getUniqueID())[slot];
@@ -116,6 +199,13 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		container.onCraftMatrixChanged(container.tableInventory);
 	}
 
+	/**
+	 * Build an enchanted item stack the way the Minecraft server would, but don't update the craft matrix.
+	 * @param container The server-side Container
+	 * @param player The player for whom we're building a stack
+	 * @param slot An integer between 0 and 2, inclusive
+	 * @return the generated ItemStack
+	 */
 	public ItemStack generateEnchantedItemStack(
 			ContainerEnchantment container, EntityPlayerMP player, int slot) {
 		
@@ -212,6 +302,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		FMLCommonHandler.instance().findContainerFor(this).getMetadata().authorList = Arrays.asList("Thebombzen");
 	}
 
+	/**
+	 * When we're asking if EnchantView exists, cancel the chat that the server uses to respond.
+	 * @param event
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void onClientChatReceived(ClientChatReceivedEvent event) {
@@ -222,6 +316,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}
 	
+	/**
+	 * Tests if any mouse button is down
+	 * @return True if any mouse button is down, false otherwise
+	 */
 	@SideOnly(Side.CLIENT)
 	public boolean isMouseDown(){
 		for (int i = 0; i < Mouse.getButtonCount(); i++){
@@ -232,6 +330,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		return false;
 	}
 	
+	/**
+	 * Client-side tick loop. Used to cancel the default enchantment-acceptance behavior 
+	 * @param event
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void clientTick(ClientTickEvent event){
@@ -251,7 +353,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 						// we set the touchscreen delay to be too high so it
 						// cancels the event
 
-						changed = true;
+						touchscreen_changed = true;
 						touchscreen = mc.gameSettings.touchscreen;
 						field_h = ThebombzenAPI.getPrivateField(
 								mc.currentScreen, GuiScreen.class,
@@ -266,10 +368,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 					}
 				}
 			} else {
-				if (changed){
+				if (touchscreen_changed){
 					mc.gameSettings.touchscreen = touchscreen;
 					ThebombzenAPI.setPrivateField(mc.currentScreen, GuiScreen.class, field_h, "field_146298_h", "h");
-					changed = false;
+					touchscreen_changed = false;
 				}
 			}
 		} catch (Throwable e) {
@@ -277,6 +379,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}		
 	
+	/**
+	 * Before the screen is drawn, request the enchantment list
+	 * and determine which tooltip we need to draw.
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void preDrawScreenEvent(DrawScreenEvent.Pre event){
@@ -310,6 +416,9 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}
 	
+	/**
+	 * Draw the correct tooltip
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void postDrawScreenEvent(DrawScreenEvent.Post event){
@@ -322,6 +431,9 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}
 	
+	/**
+	 * Called when a GUI is open to detect if EnchantView exists.
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void onOpenGui(GuiOpenEvent event) {
@@ -339,7 +451,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 			}
 		}
 	}
-
+	
+	/**
+	 * Used to receive the enchantments list from the server
+	 */
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void onPacketToClient(ClientCustomPacketEvent event){
@@ -351,6 +466,11 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		receiveEnchantmentsListFromServer(payload);
 	}
 	
+	/**
+	 * Receive a packet from the client,
+	 * and either send back the enchantments list if it's a request,
+	 * or enchant the item if it's an acceptance 
+	 */
 	@SubscribeEvent
 	public void onPacketToServer(ServerCustomPacketEvent event) {
 		if (!event.packet.channel().equals("EnchantView")){
@@ -398,11 +518,18 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}
 
+	/**
+	 * Register the command on server start
+	 */
 	@EventHandler
 	public void onServerStarting(FMLServerStartingEvent event){
 		event.registerServerCommand(new CommandEnchantViewExists());
 	}
 	
+	/**
+	 * Receive the enchantments list from the server and store the necessary data
+	 * @param payload the byte array payload sent by the server
+	 */
 	@SideOnly(Side.CLIENT)
 	public void receiveEnchantmentsListFromServer(byte[] payload) {
 		NBTTagCompound compound = null;
@@ -422,6 +549,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		askingForEnchantments = false;
 	}
 
+	/**
+	 * Request a list of enchantments from the server
+	 * @param windowId The Container id of the current enchantment Container
+	 */
 	@SideOnly(Side.CLIENT)
 	public void requestEnchantmentListFromServer(int windowId) {
 		askingForEnchantments = true;
@@ -439,6 +570,11 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		channel.sendToServer(payload);
 	}
 
+	/**
+	 * Accept the enchantment in the given slot
+	 * @param windowId The Container id of the current enchantment Container
+	 * @param slot The slot whose enchantment we accept
+	 */
 	@SideOnly(Side.CLIENT)
 	public void sendAcceptEnchantment(int windowId, int slot) {
 		ByteArrayOutputStream dataOut = new ByteArrayOutputStream();
