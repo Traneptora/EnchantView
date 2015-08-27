@@ -255,10 +255,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		if (mc.theWorld == null){
 			return;
 		}
-		/*if (event.gui instanceof GuiEnchantment
-				&& !(event.gui instanceof EVGuiEnchantment)) {
-			event.gui = new EVGuiEnchantment((GuiEnchantment) event.gui);
-		}*/
 		if (event.gui instanceof GuiEnchantment){
 			boolean shouldAsk = getConfiguration().getSingleMultiProperty(Configuration.ENABLE);
 			if (shouldAsk) {
@@ -280,22 +276,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		byte[] payload = new byte[event.packet.payload().readableBytes()];
 		event.packet.payload().readBytes(payload);
 		receiveEnchantmentsListFromServer(payload);
-	}
-	
-	@SubscribeEvent
-	public void onPlayerHasContainerOpen(PlayerOpenContainerEvent event){
-		if (event.entityPlayer.worldObj.isRemote){
-			return;
-		}
-		if (!(event.entityPlayer.openContainer instanceof ContainerEnchantment)){
-			return;
-		}
-		ContainerEnchantment container = (ContainerEnchantment)event.entityPlayer.openContainer;
-		if (Arrays.equals(container.enchantLevels, prevServerEnchantmentLevels)){
-			return;
-		} else {
-			
-		}
 	}
 	
 	@SubscribeEvent
