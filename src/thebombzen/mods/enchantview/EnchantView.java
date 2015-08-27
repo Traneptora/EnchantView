@@ -48,7 +48,7 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod(modid = "enchantview", name = "EnchantView", version = "4.1.0", dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
+@Mod(modid = "enchantview", name = "EnchantView", version = Constants.VERSION, dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
 	public static final int STAGE_REQUEST = 0;
@@ -159,7 +159,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public String getLongVersionString() {
-		return "EnchantView, version 4.1.0, Minecraft 1.7.10";
+		return "EnchantView, version " + Constants.VERSION + ", Minecraft " + Constants.MC_VERSION;
 	}
 
 	@Override
