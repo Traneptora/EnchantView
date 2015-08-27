@@ -223,8 +223,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		} else {
 			Arrays.fill(newItemStacks, null);
 		}
-		int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize");
-		int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize");
+		int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize", "field_146999_f", "f");
+		int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize", "field_147000_g", "g");
 		int xPos = (event.gui.width - xSize) / 2;
 		int yPos = (event.gui.width - ySize) / 2;
 		drawMe = -1;
