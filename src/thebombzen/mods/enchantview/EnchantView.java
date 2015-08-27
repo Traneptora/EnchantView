@@ -29,7 +29,9 @@ import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent.DrawScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
+
+import org.lwjgl.input.Mouse;
+
 import thebombzen.mods.thebombzenapi.ThebombzenAPI;
 import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -40,6 +42,8 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
@@ -70,23 +74,28 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@SideOnly(Side.CLIENT)
 	public ItemStack[] newItemStacks;
-
 	@SideOnly(Side.CLIENT)
 	public volatile boolean enchantViewExists;
-
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingIfEnchantViewExists;
-
 	@SideOnly(Side.CLIENT)
 	public volatile boolean askingForEnchantments;
 	@SideOnly(Side.CLIENT)
-	public volatile int prevLevelsHashCode = 0;
+	public volatile boolean acceptingEnchantments;
 	@SideOnly(Side.CLIENT)
-	public volatile int drawMe = -1;
+	public volatile int prevLevelsHashCode;
+	@SideOnly(Side.CLIENT)
+	public volatile int drawMe;
 	@SideOnly(Side.CLIENT)
 	public ContainerEnchantment clientContainerEnchantment;
 	
-	public int[] prevServerEnchantmentLevels = new int[3];
+	
+	@SideOnly(Side.CLIENT)
+	private volatile boolean changed;
+	@SideOnly(Side.CLIENT)
+	private volatile boolean touchscreen;
+	@SideOnly(Side.CLIENT)
+	private volatile int field_h;
 
 	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
 
@@ -104,8 +113,10 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	public ItemStack generateEnchantedItemStack(
 			ContainerEnchantment container, EntityPlayerMP player, int slot) {
+		
 		ItemStack newItemStack = ItemStack
 				.copyItemStack(container.tableInventory.getStackInSlot(0));
+		
 		if (container.enchantLevels[slot] > 0
 				&& newItemStack != null
 				&& (player.experienceLevel >= container.enchantLevels[slot] || player.capabilities.isCreativeMode)) {
@@ -134,7 +145,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 						}
 					}
 				}
-				// this.onCraftMatrixChanged(this.tableInventory);
+				//container.onCraftMatrixChanged(container.tableInventory);
 			}
 		}
 		return newItemStack;
@@ -206,12 +217,68 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 	}
 	
+	@SideOnly(Side.CLIENT)
+	public boolean isMouseDown(){
+		for (int i = 0; i < Mouse.getButtonCount(); i++){
+			if (Mouse.isButtonDown(i)){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void clientTick(ClientTickEvent event){
+		try {
+			if (event.phase.equals(Phase.START)) {
+
+				if (mc.currentScreen instanceof GuiEnchantment) {
+					if (Arrays
+							.hashCode(this.clientContainerEnchantment.enchantLevels) != prevLevelsHashCode) {
+						acceptingEnchantments = false;
+					}
+					if (drawMe != -1 && isMouseDown() && !acceptingEnchantments) {
+
+						this.acceptingEnchantments = true;
+
+						// this is used to disable the mouse event
+						// we set the touchscreen delay to be too high so it
+						// cancels the event
+
+						changed = true;
+						touchscreen = mc.gameSettings.touchscreen;
+						field_h = ThebombzenAPI.getPrivateField(
+								mc.currentScreen, GuiScreen.class,
+								"field_146298_h", "h");
+
+						mc.gameSettings.touchscreen = true;
+						ThebombzenAPI.setPrivateField(mc.currentScreen,
+								GuiScreen.class, Integer.MAX_VALUE / 2,
+								"field_146298_h", "h");
+
+						sendAcceptEnchantment(this.clientContainerEnchantment.windowId, drawMe);
+					}
+				}
+			} else {
+				if (changed){
+					mc.gameSettings.touchscreen = touchscreen;
+					ThebombzenAPI.setPrivateField(mc.currentScreen, GuiScreen.class, field_h, "field_146298_h", "h");
+					changed = false;
+				}
+			}
+		} catch (Throwable e) {
+			throwException("clientTick", e, false);
+		}
+	}		
+	
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void preDrawScreenEvent(DrawScreenEvent.Pre event){
 		if (!(event.gui instanceof GuiEnchantment)){
 			return;
 		}
+		drawMe = -1;
 		if (enchantViewExists
 				&& clientContainerEnchantment.enchantLevels[0] != 0
 				&& clientContainerEnchantment.tableInventory.getStackInSlot(0) != null) {
@@ -219,15 +286,16 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 					&& (newItemStacks[0] == null || prevLevelsHashCode != Arrays
 							.hashCode(clientContainerEnchantment.enchantLevels))) {
 				requestEnchantmentListFromServer(this.clientContainerEnchantment.windowId);
+				prevLevelsHashCode = Arrays.hashCode(clientContainerEnchantment.enchantLevels);
 			}
 		} else {
 			Arrays.fill(newItemStacks, null);
+			return;
 		}
 		int xSize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "xSize", "field_146999_f", "f");
 		int ySize = ThebombzenAPI.getPrivateField((GuiEnchantment)event.gui, GuiContainer.class, "ySize", "field_147000_g", "g");
 		int xPos = (event.gui.width - xSize) / 2;
-		int yPos = (event.gui.width - ySize) / 2;
-		drawMe = -1;
+		int yPos = (event.gui.height - ySize) / 2;
 		for (int i = 0; i < 3; i++){
 			int mouseRelX = event.mouseX - (xPos + 60);
 			int mouseRelY = event.mouseY - (yPos + 14 + 19 * i);
@@ -260,7 +328,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 			if (shouldAsk) {
 				askingIfEnchantViewExists = true;
 				mc.thePlayer.sendChatMessage("/doesenchantviewexist");
-				clientContainerEnchantment = (ContainerEnchantment)mc.thePlayer.inventoryContainer;
+				clientContainerEnchantment = (ContainerEnchantment)((GuiEnchantment)event.gui).inventorySlots;
 			} else {
 				enchantViewExists = false;
 			}
@@ -317,12 +385,11 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 				channel.sendTo(packetSend, player);
 			} else if (stage == STAGE_ACCEPT) {
 				int slot = compoundIn.getInteger("slot");
-				enchantItem(container,
-						player, slot);
+				enchantItem(container, player, slot);
 				newItemStacksMap.put(player.getUniqueID(), new ItemStack[3]);
 			}
 		} catch (IOException ioe) {
-			// never!
+			// this will never happen
 		}
 	}
 
@@ -333,7 +400,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	
 	@SideOnly(Side.CLIENT)
 	public void receiveEnchantmentsListFromServer(byte[] payload) {
-		askingForEnchantments = false;
 		NBTTagCompound compound = null;
 		try {
 			compound = CompressedStreamTools.readCompressed(new ByteArrayInputStream(payload));
@@ -348,6 +414,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 			NBTTagCompound stackTag = compound.getCompoundTag("stack" + i);
 			newItemStacks[i] = ItemStack.loadItemStackFromNBT(stackTag);
 		}
+		askingForEnchantments = false;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -382,6 +449,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		}
 		FMLProxyPacket payload = new FMLProxyPacket(Unpooled.wrappedBuffer(dataOut.toByteArray()), "EnchantView");
 		channel.sendToServer(payload);
+		drawMe = -1;
 	}
 	
 }
