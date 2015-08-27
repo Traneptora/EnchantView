@@ -44,7 +44,7 @@ public class EnchantView extends JavaPlugin implements PluginMessageListener {
 	@Override
 	public void onLoad(){
 		try {
-			Class.forName("net.minecraft.server.v1_7_R3.MinecraftServer", false, Bukkit.class.getClassLoader());
+			Class.forName("net.minecraft.server.v1_7_R4.MinecraftServer", false, Bukkit.class.getClassLoader());
 		} catch (ClassNotFoundException e){
 			throw new RuntimeException("This version of EnchantView is incompatible with this version of craftbukkit.", e);
 		}
