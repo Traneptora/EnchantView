@@ -45,6 +45,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.common.network.FMLEventChannel;
+import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientCustomPacketEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ServerCustomPacketEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -98,9 +99,13 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	private volatile int field_h;
 
 	private Map<UUID, ItemStack[]> newItemStacksMap = new HashMap<UUID, ItemStack[]>();
-
-	public boolean canPlayerUseCommand(EntityPlayerMP player) {
-		return sideSpecificUtilities.canPlayerUseCommand(player);
+	
+	/**
+	 * Do not reject vanilla clients or vanilla servers.
+	 */
+	@NetworkCheckHandler
+	public boolean checkNetwork(Map<String, String> modsList, Side remote){
+		return true;
 	}
 
 	public void enchantItem(ContainerEnchantment container,
