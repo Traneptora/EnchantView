@@ -36,55 +36,78 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
+import thebombzen.mods.enchantview.Constants;
+
 public class EVInstallerFrame extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-		
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
+	
+	public static void copyFile(File sourceFile, File destFile)
+			throws IOException {
 
-	    FileChannel source = null;
-	    FileChannel destination = null;
-	    FileInputStream inStream = null;
-	    FileOutputStream outStream = null;
-	    
-	    try {
-	    	inStream = new FileInputStream(sourceFile);
-	    	outStream = new FileOutputStream(destFile);
-	        source = inStream.getChannel();
-	        destination = outStream.getChannel();
+		if (!destFile.exists()) {
+			destFile.createNewFile();
+		}
 
-	        long count = 0;
-	        long size = source.size();              
-	        while((count += destination.transferFrom(source, count, size-count)) < size);
-	    } finally {
-	    	if (inStream != null){
-	    		inStream.close();
-	    	}
-	    	if (outStream != null){
-	    		outStream.close();
-	    	}
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
-	}
-	public static String getMinecraftClientDirectory() throws IOException {
-		String name = System.getProperty("os.name");
-		if (name.toLowerCase().contains("windows")){
-			return new File(System.getenv("appdata") + "\\.minecraft").getCanonicalPath();
-		} else if (name.toLowerCase().contains("mac") || name.toLowerCase().contains("osx") || name.toLowerCase().contains("os x")){
-			return new File(System.getProperty("user.home") + "/Library/Application Support/minecraft").getCanonicalPath();
-		} else {
-			return new File(System.getProperty("user.home") + "/.minecraft").getCanonicalPath();
+		FileChannel source = null;
+		FileChannel destination = null;
+		FileInputStream inStream = null;
+		FileOutputStream outStream = null;
+
+		try {
+			inStream = new FileInputStream(sourceFile);
+			outStream = new FileOutputStream(destFile);
+			source = inStream.getChannel();
+			destination = outStream.getChannel();
+
+			long count = 0;
+			long size = source.size();
+			while ((count += destination.transferFrom(source, count, size
+					- count)) < size)
+				;
+		} finally {
+			if (inStream != null) {
+				inStream.close();
+			}
+			if (outStream != null) {
+				outStream.close();
+			}
+			if (source != null) {
+				source.close();
+			}
+			if (destination != null) {
+				destination.close();
+			}
 		}
 	}
-	public static void main(String[] args) throws IOException {
+	
+	public static String getMinecraftClientDirectory() throws IOException {
+		String name = System.getProperty("os.name");
+		if (name.toLowerCase().contains("windows")) {
+			return new File(System.getenv("appdata") + "\\.minecraft")
+					.getCanonicalPath();
+		} else if (name.toLowerCase().contains("mac")
+				|| name.toLowerCase().contains("osx")
+				|| name.toLowerCase().contains("os x")) {
+			return new File(System.getProperty("user.home")
+					+ "/Library/Application Support/minecraft")
+					.getCanonicalPath();
+		} else {
+			return new File(System.getProperty("user.home") + "/.minecraft")
+					.getCanonicalPath();
+		}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		if (args.length > 0) {
+			if (args[0].equals("--no-gui") || args[0].equals("-n")) {
+				installNoGui(getMinecraftClientDirectory());
+				return;
+			} else {
+				System.err
+						.println("Run with --no-gui or -n to install without a gui.");
+			}
+		}
 		new EVInstallerFrame().setVisible(true);
 	}
 	
@@ -276,12 +299,13 @@ public class EVInstallerFrame extends JFrame {
 		textField.setText(serverDirectory);
 	}
 	
-	private String getThebombzenAPILatestVersion() throws IOException {
+	private static String getThebombzenAPILatestVersion() throws IOException {
 		String latestVersion = null;
 		BufferedReader br = null;
 		try {
 			URL versionURL = new URL(
-					"https://dl.dropboxusercontent.com/u/51080973/mods/ThebombzenAPI/Latest.txt");
+					"https://dl.dropboxusercontent.com/u/51080973/mods/ThebombzenAPI/Latest-"
+							+ Constants.MC_VERSION + ".txt");
 			br = new BufferedReader(new InputStreamReader(
 					versionURL.openStream()));
 			latestVersion = br.readLine();
@@ -294,10 +318,10 @@ public class EVInstallerFrame extends JFrame {
 		return latestVersion;
 	}
 	
-	private void install(){
+	private void install() {
 		try {
 			install(textField.getText());
-		} catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			dialog.dispose();
 			JOptionPane.showMessageDialog(this,
@@ -307,50 +331,81 @@ public class EVInstallerFrame extends JFrame {
 		System.exit(0);
 	}
 
-	private void install(String directory) throws Exception {
+	private static void installNoGui(String directory) throws Exception {
 		File dir = new File(directory);
-		if (!dir.isDirectory()){
-			JOptionPane.showMessageDialog(this, "Something's wrong with the given folder. Check spelling and try again.", "Hmmm...", JOptionPane.ERROR_MESSAGE);
+		if (!dir.isDirectory()) {
+			System.err.println("Invalid directory: " + directory);
 			return;
 		}
-		
-		dialog.setVisible(true);
-		
 		File modsFolder = new File(directory, "mods");
 		modsFolder.mkdir();
-		File file = new File(EVInstallerFrame.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+		File versionFolder = new File(modsFolder, Constants.MC_VERSION);
+		versionFolder.mkdir();
+		File file = new File(EVInstallerFrame.class.getProtectionDomain()
+				.getCodeSource().getLocation().toURI());
 		JarFile jarFile = new JarFile(file);
-		if (jarFile.getEntry("thebombzen/mods/enchantview/installer/EVInstallerFrame.class") == null){
+		if (jarFile
+				.getEntry("thebombzen/mods/enchantview/installer/EVInstallerFrame.class") == null) {
 			jarFile.close();
-			throw new Exception("Unable to find mod jarfile!");
+			throw new Exception("Unable to open jar file!");
 		}
 		jarFile.close();
 		installThebombzenAPI(directory);
 		File[] mods = modsFolder.listFiles();
-		for (File testMod : mods){
-			if (testMod.getName().matches("^EnchantView(Mod)?-v\\d+\\.\\d+(\\.\\d+)?-mc\\d+\\.\\d+(\\.\\d+)?\\.(jar|zip)$")){
+		File[] modsVersion = versionFolder.listFiles();
+		for (File testMod : mods) {
+			if (testMod
+					.getName()
+					.matches(
+							"^EnchantView(Mod)?-v\\d\\.\\d(\\.\\d)?-mc(beta)?\\d\\.\\d(\\.\\d)?\\.(jar|zip)$")) {
 				testMod.delete();
 			}
 		}
-		copyFile(file, new File(modsFolder, file.getName()));
-		dialog.dispose();
-		JOptionPane.showMessageDialog(this, "Successfully installed EnchantView!", "Success!", JOptionPane.INFORMATION_MESSAGE);
+		for (File testMod : modsVersion) {
+			if (testMod
+					.getName()
+					.matches(
+							"^EnchantView(Mod)?-v\\d\\.\\d(\\.\\d)?-mc(beta)?\\d\\.\\d(\\.\\d)?\\.(jar|zip)$")) {
+				testMod.delete();
+			}
+		}
+		copyFile(file, new File(versionFolder, file.getName()));
 	}
-	
-	public void installThebombzenAPI(String directory) throws Exception {	
+
+	private void install(String directory) throws Exception {
+		File dir = new File(directory);
+		if (!dir.isDirectory()) {
+			JOptionPane
+					.showMessageDialog(
+							this,
+							"Something's wrong with the given folder. Check spelling and try again.",
+							"Hmmm...", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		dialog.setVisible(true);
+		installNoGui(directory);
+		dialog.dispose();
+		JOptionPane.showMessageDialog(this,
+				"Successfully installed EnchantView!", "Success!",
+				JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	private static void installThebombzenAPI(String directory) throws Exception {
 		String latest = getThebombzenAPILatestVersion();
 		Scanner scanner = new Scanner(latest);
 		scanner.useDelimiter(String.format("%n"));
 		String fileName = scanner.next();
 		String url = scanner.next();
 		scanner.close();
-		File modsFolder = new File(directory, "mods");
-		if (!modsFolder.exists()) {
-			modsFolder.mkdir();
-		}
 
-		File thebombzenAPI = new File(modsFolder, fileName);
-		
+		File modsFolder = new File(directory, "mods");
+		modsFolder.mkdir();
+		File versionFolder = new File(modsFolder, Constants.MC_VERSION);
+		versionFolder.mkdir();
+
+		File thebombzenAPI = new File(versionFolder, fileName);
+
 		if (thebombzenAPI.exists()) {
 			return;
 		}
@@ -358,7 +413,15 @@ public class EVInstallerFrame extends JFrame {
 		URL downloadURL = new URL(url);
 
 		File[] subFiles = modsFolder.listFiles();
+		File[] versionSubFiles = versionFolder.listFiles();
 		for (File file : subFiles) {
+			if (file.getName()
+					.matches(
+							"^ThebombzenAPI-v\\d+\\.\\d+(\\.\\d+)?-mc\\d+\\.\\d+(\\.\\d+)?\\.(zip|jar)$")) {
+				file.delete();
+			}
+		}
+		for (File file : versionSubFiles) {
 			if (file.getName()
 					.matches(
 							"^ThebombzenAPI-v\\d+\\.\\d+(\\.\\d+)?-mc\\d+\\.\\d+(\\.\\d+)?\\.(zip|jar)$")) {
