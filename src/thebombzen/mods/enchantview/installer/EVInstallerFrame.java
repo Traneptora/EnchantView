@@ -288,6 +288,7 @@ public class EVInstallerFrame extends JFrame {
 		dialog.pack();
 		dialog.setLocation(this.getX() + (this.getWidth() - dialog.getWidth()) / 2, this.getY() + (this.getHeight() - dialog.getHeight()) / 2);
 	}
+
 	
 	private void clickedInstallClient(){
 		serverDirectory = textField.getText();
@@ -357,7 +358,7 @@ public class EVInstallerFrame extends JFrame {
 			if (testMod
 					.getName()
 					.matches(
-							"^EnchantView(Mod)?-v\\d\\.\\d(\\.\\d)?-mc(beta)?\\d\\.\\d(\\.\\d)?\\.(jar|zip)$")) {
+							"^EnchantView(Mod)?-v\\d\\.\\d+(\\.\\d+)?-mc(beta)?\\d\\.\\d+(\\.\\d+)?\\.(jar|zip)$")) {
 				testMod.delete();
 			}
 		}
@@ -365,7 +366,7 @@ public class EVInstallerFrame extends JFrame {
 			if (testMod
 					.getName()
 					.matches(
-							"^EnchantView(Mod)?-v\\d\\.\\d(\\.\\d)?-mc(beta)?\\d\\.\\d(\\.\\d)?\\.(jar|zip)$")) {
+							"^EnchantView(Mod)?-v\\d\\.\\d+(\\.\\d+)?-mc(beta)?\\d\\.\\d+(\\.\\d+)?\\.(jar|zip)$")) {
 				testMod.delete();
 			}
 		}
