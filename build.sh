@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERS=5.0.0
+VERS=5.0.1
 MC_VERS=1.8
 BASENAME=enchantview
 LONGNAME=EnchantView

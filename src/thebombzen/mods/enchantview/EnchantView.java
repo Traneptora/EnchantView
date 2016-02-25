@@ -31,7 +31,7 @@ import thebombzen.mods.thebombzenapi.ThebombzenAPIBaseMod;
  * It only uses client-side features like Update Notices
  * @author thebombzen
  */
-@Mod(modid = "enchantview", name = "EnchantView", version = Constants.VERSION, dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory")
+@Mod(modid = "enchantview", name = "EnchantView", version = Constants.VERSION, dependencies = "required-after:thebombzenapi", guiFactory = "thebombzen.mods.enchantview.client.ConfigGuiFactory", acceptedMinecraftVersions = "[1.8, 1.9)")
 public class EnchantView extends ThebombzenAPIBaseMod {
 
 	/**
