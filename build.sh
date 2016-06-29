@@ -1,11 +1,6 @@
 #!/bin/bash
 set -e
 
-#function moveback {
-	#mv -v ./bukkit src/main/java/thebombzen/mods/enchantview/bukkit
-#}
-#trap moveback EXIT
-
 LONGNAME=EnchantView
 LONGNAMELC=enchantview
 SHORTNAME=EV
@@ -46,7 +41,6 @@ if [ ! -e gradlew ] ; then
 	cd build
 fi
 
-#mv -v src/main/java/thebombzen/mods/enchantview/bukkit ./bukkit
 ./gradlew build
 
 cp build/libs/modid-1.0.jar $ARCHIVE
