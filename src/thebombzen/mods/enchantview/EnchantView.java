@@ -69,7 +69,9 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	 * It's a function of the player's UUID, so it can keep track
 	 * of multiple players at once on the server.
 	 */
-	private Map<UUID, int[][]> hints = new HashMap<UUID, int[][]>();
+	private Map<UUID, int[][]> enchantmentClues = new HashMap<UUID, int[][]>();
+	
+	private Map<UUID, int[][]> worldClues = new HashMap<UUID, int[][]>();
 	
 	/**
 	 * Do not reject vanilla clients or vanilla servers.
@@ -133,7 +135,8 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	private void purgeUUID(UUID uuid){
 		tickTimes.remove(uuid);
 		prevTableStates.remove(uuid);
-		hints.remove(uuid);
+		enchantmentClues.remove(uuid);
+		worldClues.remove(uuid);
 	}
 	
 	/**
@@ -153,24 +156,29 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		
 		ContainerEnchantment container = (ContainerEnchantment)player.openContainer;
 		container.xpSeed = player.getXPSeed();
-		int[][] hints = new int[3][];
+		int[][] enchantClues = new int[3][];
+		int[][] worldClues = new int[3][];
 		for (int j = 0; j < 3; j++) {
 			if (container.enchantLevels[j] > 0) {
-				// func_178148_a, a
-				List<EnchantmentData> list = ThebombzenAPI.invokePrivateMethod(container, ContainerEnchantment.class, new String[]{"func_178148_a", "a"}, new Class<?>[]{ItemStack.class, int.class, int.class}, container.tableInventory.getStackInSlot(0), j, container.enchantLevels[j]);
+				// func_178148_a, a, getEnchantmentList
+				List<EnchantmentData> list = ThebombzenAPI.invokePrivateMethod(container, ContainerEnchantment.class, new String[]{"getEnchantmentList", "a"}, new Class<?>[]{ItemStack.class, int.class, int.class}, container.tableInventory.getStackInSlot(0), j, container.enchantLevels[j]);
 				
 				if (list != null && !list.isEmpty()) {
-					hints[j] = new int[list.size()];
+					enchantClues[j] = new int[list.size()];
+					worldClues[j] = new int[list.size()];
 					for (int i = 0; i < list.size(); i++){
 						EnchantmentData enchantmentdata = list.get(i);
-						hints[j][i] = Enchantment.getEnchantmentID(enchantmentdata.enchantmentobj) | enchantmentdata.enchantmentLevel << 8;
+						enchantClues[j][i] = Enchantment.getEnchantmentID(enchantmentdata.enchantmentobj);
+						worldClues[j][i] = enchantmentdata.enchantmentLevel;
 					}
 				} else {
-					hints[j] = null;
+					enchantClues[j] = null;
+					worldClues[j] = null;
 				}
 			}
 		}
-		this.hints.put(uuid, hints);
+		this.enchantmentClues.put(uuid, enchantClues);
+		this.worldClues.put(uuid, worldClues);
 	}
 	
 	/**
@@ -181,16 +189,19 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	private void cycleHint(EntityPlayer player){
 		UUID uuid = player.getUniqueID();
 		ContainerEnchantment container = (ContainerEnchantment)player.openContainer;
-		int[][] hints = this.hints.get(uuid);
-		if (hints == null){
+		int[][] enchantClues = this.enchantmentClues.get(uuid);
+		int[][] worldClues = this.worldClues.get(uuid);
+		if (enchantClues == null || worldClues == null){
 			return;
 		}
 		for (int j = 0; j < 3; j++){
-			int[] currHints = hints[j];
-			if (currHints == null){
+			int[] currEnchantClues = enchantClues[j];
+			int[] currWorldClues = worldClues[j];
+			if (currEnchantClues == null || currWorldClues == null){
 				return;
 			}
-			container.enchantClue[j] = currHints[(int)((tickTimes.get(uuid) / 20L) % (long)currHints.length)];
+			container.enchantClue[j] = currEnchantClues[(int)((tickTimes.get(uuid) / 20L) % (long)currEnchantClues.length)];
+			container.worldClue[j] = currWorldClues[(int)((tickTimes.get(uuid) / 20L) % (long)currWorldClues.length)];
 		}
 		container.detectAndSendChanges();
 	}
