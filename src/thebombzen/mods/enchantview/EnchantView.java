@@ -161,7 +161,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		for (int j = 0; j < 3; j++) {
 			if (container.enchantLevels[j] > 0) {
 				// func_178148_a, a, getEnchantmentList
-				List<EnchantmentData> list = ThebombzenAPI.invokePrivateMethod(container, ContainerEnchantment.class, new String[]{"getEnchantmentList", "a"}, new Class<?>[]{ItemStack.class, int.class, int.class}, container.tableInventory.getStackInSlot(0), j, container.enchantLevels[j]);
+				List<EnchantmentData> list = ThebombzenAPI.invokePrivateMethod(container, ContainerEnchantment.class, new String[]{"getEnchantmentList", "a", "func_178148_a"}, new Class<?>[]{ItemStack.class, int.class, int.class}, container.tableInventory.getStackInSlot(0), j, container.enchantLevels[j]);
 				
 				if (list != null && !list.isEmpty()) {
 					enchantClues[j] = new int[list.size()];
