@@ -3,6 +3,7 @@ package thebombzen.mods.enchantview;
 import java.util.Arrays;
 
 import net.minecraft.inventory.ContainerEnchantment;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
@@ -20,7 +21,7 @@ public class TableState {
 				damages[i] = 0;
 				sizes[i] = 0;
 			} else {
-				items[i] = GameRegistry.findUniqueIdentifierFor(stack.getItem()).toString();
+				items[i] = Item.REGISTRY.getNameForObject(stack.getItem()).toString();
 				damages[i] = stack.getItemDamage();
 				sizes[i] = stack.stackSize;
 			}

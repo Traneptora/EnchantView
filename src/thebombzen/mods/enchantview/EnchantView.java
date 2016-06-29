@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerEnchantment;
@@ -86,13 +87,13 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	 */
 	@SubscribeEvent
 	public void playerHasContainerOpen(PlayerOpenContainerEvent event){
-		UUID uuid = event.entityPlayer.getUniqueID();
+		UUID uuid = event.getEntityPlayer().getUniqueID();
 		// If the inventory is not a crafting inventory then clear stuff.
-		if (!(event.entityPlayer.openContainer instanceof ContainerEnchantment)){
+		if (!(event.getEntityPlayer().openContainer instanceof ContainerEnchantment)){
 			purgeUUID(uuid);
 			return;
 		}
-		ContainerEnchantment container = (ContainerEnchantment)event.entityPlayer.openContainer;
+		ContainerEnchantment container = (ContainerEnchantment)event.getEntityPlayer().openContainer;
 		
 		if (!tickTimes.containsKey(uuid)){
 			tickTimes.put(uuid, 0L);
@@ -105,12 +106,12 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 		TableState state = new TableState(container);
 		if (!prevTableStates.containsKey(uuid) || !prevTableStates.get(uuid).equals(state)){
 			prevTableStates.put(uuid, state);
-			tableUpdated(event.entityPlayer);
+			tableUpdated(event.getEntityPlayer());
 		}
 		
 		// 20 ticks is one second.
 		if (tickTimes.get(uuid) % 20L == 0L){
-			cycleHint(event.entityPlayer);
+			cycleHint(event.getEntityPlayer());
 		}
 	}
 	
@@ -120,7 +121,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 	@SubscribeEvent
 	public void serverTick(ServerTickEvent event){
 		for (UUID uuid : tickTimes.keySet()){
-			if (MinecraftServer.getServer().getEntityFromUuid(uuid) == null){
+			if (FMLCommonHandler.instance().getMinecraftServerInstance().getEntityFromUuid(uuid) == null){
 				purgeUUID(uuid);
 			}
 		}
@@ -163,7 +164,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 					hints[j] = new int[list.size()];
 					for (int i = 0; i < list.size(); i++){
 						EnchantmentData enchantmentdata = list.get(i);
-						hints[j][i] = enchantmentdata.enchantmentobj.effectId | enchantmentdata.enchantmentLevel << 8;
+						hints[j][i] = Enchantment.getEnchantmentID(enchantmentdata.enchantmentobj) | enchantmentdata.enchantmentLevel << 8;
 					}
 				} else {
 					hints[j] = null;
@@ -190,7 +191,7 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 			if (currHints == null){
 				return;
 			}
-			container.field_178151_h[j] = currHints[(int)((tickTimes.get(uuid) / 20L) % (long)currHints.length)];
+			container.enchantClue[j] = currHints[(int)((tickTimes.get(uuid) / 20L) % (long)currHints.length)];
 		}
 		container.detectAndSendChanges();
 	}
