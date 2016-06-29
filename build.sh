@@ -49,7 +49,7 @@ fi
 #mv -v src/main/java/thebombzen/mods/enchantview/bukkit ./bukkit
 ./gradlew build
 
-cp build/libs/$LONGNAMELC-$VERS.jar $ARCHIVE
+cp build/libs/modid-1.0.jar $ARCHIVE
 mkdir -p META-INF
 
 echo "Manifest-Version: 1.0" >META-INF/MANIFEST.MF
