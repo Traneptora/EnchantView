@@ -40,10 +40,7 @@ if [ ! -e gradlew ] ; then
 	rm -rf java resources
 	ln -s ../../../resources
 	ln -s ../../../src java
-	cd ../..
-	rm build.gradle
-	ln -s ../build.gradle
-	cd ..
+	cd ../../..
 	mv $LONGNAME build
 	mv $TMP $LONGNAME 2>/dev/null || true
 	cd build
