@@ -5,7 +5,6 @@ import java.util.Arrays;
 import net.minecraft.inventory.ContainerEnchantment;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TableState {
 	private int[] enchantLevels = new int[3];
