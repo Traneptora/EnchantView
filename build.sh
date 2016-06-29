@@ -6,27 +6,60 @@ function moveback {
 }
 trap moveback EXIT
 
+LONGNAME=EnchantView
+LONGNAMELC=enchantview
+SHORTNAME=EV
 VERS=5.0.1
 MC_VERS=1.8.9
-BASENAME=enchantview
-LONGNAME=EnchantView
-SHORTNAME=EV
+MDK=1.8.9-11.15.1.1902-1.8.9
+ARCHIVE=$LONGNAME-v$VERS-mc$MC_VERS.jar
 
-cd $(dirname $0)
-ARCH=$LONGNAME-v$VERS-mc$MC_VERS.jar
+CURRDIR="$PWD"
+
+cd "$(dirname $0)"
+
+mkdir -p build
+cd build
+
+if [ ! -e gradlew ] ; then
+	cd ..
+	TMP=$LONGNAME
+	if [ -e $LONGNAME ] ; then
+		TMP=$(mktemp)
+		rm -f $TMP
+		mv $LONGNAME $TMP
+	fi
+	mv build $LONGNAME
+	cd $LONGNAME
+	wget http://files.minecraftforge.net/maven/net/minecraftforge/forge/$MDK/forge-$MDK-mdk.zip
+	unzip forge-$MDK-mdk.zip
+	./gradlew setupDecompWorkspace
+	./gradlew eclipse
+	rm forge-$MDK-mdk.zip
+	cd src/main
+	rm -rf java resources
+	ln -s ../../../resources
+	ln -s ../../../src java
+	cd ../..
+	rm build.gradle
+	ln -s ../build.gradle
+	cd ..
+	mv $LONGNAME build
+	mv $TMP $LONGNAME 2>/dev/null || true
+	cd build
+fi
+
 mv -v src/main/java/thebombzen/mods/enchantview/bukkit ./bukkit
 ./gradlew build
 
-cp -v build/libs/$BASENAME-$VERS.jar $ARCH
-mkdir -v -p META-INF
+cp build/libs/$LONGNAMELC-$VERS.jar $ARCHIVE
+mkdir -p META-INF
 
-cat >META-INF/MANIFEST.MF <<EOF
-Manifest-Version: 1.0
-EOF
+echo "Manifest-Version: 1.0" >META-INF/MANIFEST.MF
+echo "Main-Class: thebombzen.mods.${LONGNAMELC}.installer.${SHORTNAME}InstallerFrame" >>META-INF/MANIFEST.MF
 
-echo >>META-INF/MANIFEST.MF "Main-Class: thebombzen.mods.$BASENAME.installer.${SHORTNAME}InstallerFrame"
+zip -u $ARCHIVE META-INF/MANIFEST.MF
+zip -d $ARCHIVE thebombzen/mods/thebombzenapi\*
 
-zip -u $ARCH META-INF/MANIFEST.MF
-zip -d $ARCH "thebombzen/mods/thebombzenapi*"
-zip -d $ARCH plugin.yml
+cp $ARCHIVE "$CURRDIR"
 
