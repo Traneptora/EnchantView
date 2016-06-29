@@ -240,7 +240,6 @@ public class EnchantView extends ThebombzenAPIBaseMod {
 
 	@Override
 	public void init1(FMLPreInitializationEvent event){
-		FMLCommonHandler.instance().bus().register(this);
 		MinecraftForge.EVENT_BUS.register(this);
 		configuration = new Configuration(this);
 		FMLCommonHandler.instance().findContainerFor(this).getMetadata().authorList = Arrays.asList("Thebombzen");
