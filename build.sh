@@ -2,7 +2,7 @@
 set -e
 
 function moveback {
-	mv -v ./bukkit src/main/java/thebombzen/mods/enchantview/bukkit
+	#mv -v ./bukkit src/main/java/thebombzen/mods/enchantview/bukkit
 }
 trap moveback EXIT
 
@@ -49,7 +49,7 @@ if [ ! -e gradlew ] ; then
 	cd build
 fi
 
-mv -v src/main/java/thebombzen/mods/enchantview/bukkit ./bukkit
+#mv -v src/main/java/thebombzen/mods/enchantview/bukkit ./bukkit
 ./gradlew build
 
 cp build/libs/$LONGNAMELC-$VERS.jar $ARCHIVE
