@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-function moveback {
+#function moveback {
 	#mv -v ./bukkit src/main/java/thebombzen/mods/enchantview/bukkit
-}
-trap moveback EXIT
+#}
+#trap moveback EXIT
 
 LONGNAME=EnchantView
 LONGNAMELC=enchantview
